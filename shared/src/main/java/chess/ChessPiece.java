@@ -132,7 +132,90 @@ public class ChessPiece {
      * @param moves
      */
     private void queenMoves(ChessBoard board, ChessPosition myPosition, List<ChessMove> moves) {
-
+        int startingRow = myPosition.getRow();
+        int startingCol = myPosition.getColumn();
+        int row = startingRow;
+        int col = startingCol;
+        int check = 0;
+        // the check variable determines what direction the next space to check will be in. 0 is Up-right, and clockwise from there
+        while (check != 8) {
+            switch (check) {
+                case 0 -> {
+                    row++;
+                    col++;
+                }
+                case 1 -> {
+                    row--;
+                    col++;
+                }
+                case 2 -> {
+                    row--;
+                    col--;
+                }
+                case 3 -> {
+                    row++;
+                    col--;
+                }
+                case 4 -> {
+                    row++;
+                }
+                case 5 -> {
+                    col--;
+                }
+                case 6 -> {
+                    row--;
+                }
+                case 7 -> {
+                    col++;
+                }
+            }
+            // while loop breaks when row or column escapes the board.
+            while (row >= 1 && row <= 8 && col >= 1 && col <= 8) {
+                ChessPiece chkSpace = board.getPiece(new ChessPosition(row, col));
+                if (chkSpace == null) {
+                    moves.add(new ChessMove(myPosition, new ChessPosition(row, col), null));
+                    //System.out.println("Added " + new ChessMove(myPosition, new ChessPosition(row, col), null).toString());
+                } else if (chkSpace.getTeamColor() != this.color) {
+                    moves.add(new ChessMove(myPosition, new ChessPosition(row, col), null));
+                    break;
+                } else {
+                    break;
+                }
+                switch (check) {
+                    case 0 -> {
+                        row++;
+                        col++;
+                    }
+                    case 1 -> {
+                        row--;
+                        col++;
+                    }
+                    case 2 -> {
+                        row--;
+                        col--;
+                    }
+                    case 3 -> {
+                        row++;
+                        col--;
+                    }
+                    case 4 -> {
+                        row++;
+                    }
+                    case 5 -> {
+                        col--;
+                    }
+                    case 6 -> {
+                        row--;
+                    }
+                    case 7 -> {
+                        col++;
+                    }
+                }
+            }
+            check++;
+            row = startingRow;
+            col = startingCol;
+        }
     }
     /**
      * Fills List object with possible moves for a rook

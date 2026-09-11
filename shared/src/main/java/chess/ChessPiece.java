@@ -13,8 +13,8 @@ import java.util.Objects;
  */
 public class ChessPiece {
 
-    private final ChessGame.TeamColor color;
-    private final ChessPiece.PieceType piece;
+    private ChessGame.TeamColor color;
+    private ChessPiece.PieceType piece;
 
     public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
         color = pieceColor;
@@ -51,6 +51,7 @@ public class ChessPiece {
      * Hashes string representation
      * @return hash of toString method
      */
+    @Override
     public int hashCode() {
         return Objects.hash(toString());
     }
@@ -60,6 +61,7 @@ public class ChessPiece {
      * @param o   the reference object with which to compare.
      * @return true or false depending on answer
      */
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o.getClass() != getClass()) return false;
@@ -139,7 +141,58 @@ public class ChessPiece {
      * @param moves
      */
     private void rookMoves(ChessBoard board, ChessPosition myPosition, List<ChessMove> moves) {
-
+        int startingRow = myPosition.getRow();
+        int startingCol = myPosition.getColumn();
+        int row = startingRow;
+        int col = startingCol;
+        int check = 0;
+        // the check variable determines what direction the next space to check will be in. 0 is right, and clockwise from there
+        while (check != 4) {
+            switch (check) {
+                case 0 -> {
+                    row++;
+                }
+                case 1 -> {
+                    col--;
+                }
+                case 2 -> {
+                    row--;
+                }
+                case 3 -> {
+                    col++;
+                }
+            }
+            // while loop breaks when row or column escapes the board.
+            while (row >= 1 && row <= 8 && col >= 1 && col <= 8) {
+                ChessPiece chkSpace = board.getPiece(new ChessPosition(row, col));
+                if (chkSpace == null) {
+                    moves.add(new ChessMove(myPosition, new ChessPosition(row, col), null));
+                    //System.out.println("Added " + new ChessMove(myPosition, new ChessPosition(row, col), null).toString());
+                } else if (chkSpace.getTeamColor() != color) {
+                    moves.add(new ChessMove(myPosition, new ChessPosition(row, col), null));
+                    break;
+                } else {
+                    break;
+                }
+                switch (check) {
+                    case 0 -> {
+                        row++;
+                    }
+                    case 1 -> {
+                        col--;
+                    }
+                    case 2 -> {
+                        row--;
+                    }
+                    case 3 -> {
+                        col++;
+                    }
+                }
+            }
+            check++;
+            row = startingRow;
+            col = startingCol;
+        }
     }
     /**
      * Fills List object with possible moves for a bishop
@@ -175,11 +228,11 @@ public class ChessPiece {
             }
             // while loop breaks when row or column escapes the board.
             while (row >= 1 && row <= 8 && col >= 1 && col <= 8) {
-                var chkSpace = board.getPiece(new ChessPosition(row, col));
+                ChessPiece chkSpace = board.getPiece(new ChessPosition(row, col));
                 if (chkSpace == null) {
                     moves.add(new ChessMove(myPosition, new ChessPosition(row, col), null));
                     //System.out.println("Added " + new ChessMove(myPosition, new ChessPosition(row, col), null).toString());
-                } else if (chkSpace.getTeamColor() != color) {
+                } else if (chkSpace.getTeamColor() != this.color) {
                     moves.add(new ChessMove(myPosition, new ChessPosition(row, col), null));
                     break;
                 } else {

@@ -13,8 +13,8 @@ import java.util.Objects;
  */
 public class ChessPiece {
 
-    private ChessGame.TeamColor color;
-    private ChessPiece.PieceType piece;
+    private final ChessGame.TeamColor color;
+    private final ChessPiece.PieceType piece;
 
     public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
         color = pieceColor;
@@ -118,18 +118,65 @@ public class ChessPiece {
 
     /**
      * Fills List object with possible moves for a king
-     * @param board
-     * @param myPosition
-     * @param moves
+     * @param board ChessBoard object of current gameboard configuration
+     * @param myPosition ChessPosition object of the current position of the piece
+     * @param moves The List object that discovered moves will be added to
      */
     private void kingMoves(ChessBoard board, ChessPosition myPosition, List<ChessMove> moves) {
-
+        int startingRow = myPosition.getRow();
+        int startingCol = myPosition.getColumn();
+        int row = startingRow;
+        int col = startingCol;
+        int check = 0;
+        while (check != 8) {
+            switch (check) {
+                case 0 -> {
+                    row++;
+                    col++;
+                }
+                case 1 -> {
+                    row--;
+                    col++;
+                }
+                case 2 -> {
+                    row--;
+                    col--;
+                }
+                case 3 -> {
+                    row++;
+                    col--;
+                }
+                case 4 -> {
+                    row++;
+                }
+                case 5 -> {
+                    col--;
+                }
+                case 6 -> {
+                    row--;
+                }
+                case 7 -> {
+                    col++;
+                }
+            }
+            if (row >= 1 && row <= 8 && col >= 1 && col <= 8) {
+                ChessPiece chkSpace = board.getPiece(new ChessPosition(row, col));
+                if (chkSpace == null) {
+                    moves.add(new ChessMove(myPosition, new ChessPosition(row, col), null));
+                } else if (chkSpace.getTeamColor() != this.color) {
+                    moves.add(new ChessMove(myPosition, new ChessPosition(row, col), null));
+                }
+            }
+            check++;
+            row = startingRow;
+            col = startingCol;
+        }
     }
     /**
      * Fills List object with possible moves for a queen
-     * @param board
-     * @param myPosition
-     * @param moves
+     * @param board ChessBoard object of current gameboard configuration
+     * @param myPosition ChessPosition object of the current position of the piece
+     * @param moves The List object that discovered moves will be added to
      */
     private void queenMoves(ChessBoard board, ChessPosition myPosition, List<ChessMove> moves) {
         int startingRow = myPosition.getRow();
@@ -219,9 +266,9 @@ public class ChessPiece {
     }
     /**
      * Fills List object with possible moves for a rook
-     * @param board
-     * @param myPosition
-     * @param moves
+     * @param board ChessBoard object of current gameboard configuration
+     * @param myPosition ChessPosition object of the current position of the piece
+     * @param moves The List object that discovered moves will be added to
      */
     private void rookMoves(ChessBoard board, ChessPosition myPosition, List<ChessMove> moves) {
         int startingRow = myPosition.getRow();
@@ -279,9 +326,9 @@ public class ChessPiece {
     }
     /**
      * Fills List object with possible moves for a bishop
-     * @param board
-     * @param myPosition
-     * @param moves
+     * @param board ChessBoard object of current gameboard configuration
+     * @param myPosition ChessPosition object of the current position of the piece
+     * @param moves The List object that discovered moves will be added to
      */
     private void bishopMoves(ChessBoard board, ChessPosition myPosition, List<ChessMove> moves) {
         int startingRow = myPosition.getRow();
@@ -347,18 +394,18 @@ public class ChessPiece {
     }
     /**
      * Fills List object with possible moves for a knight
-     * @param board
-     * @param myPosition
-     * @param moves
+     * @param board ChessBoard object of current gameboard configuration
+     * @param myPosition ChessPosition object of the current position of the piece
+     * @param moves The List object that discovered moves will be added to
      */
     private void knightMoves(ChessBoard board, ChessPosition myPosition, List<ChessMove> moves) {
 
     }
     /**
      * Fills List object with possible moves for a pawn
-     * @param board
-     * @param myPosition
-     * @param moves
+     * @param board ChessBoard object of current gameboard configuration
+     * @param myPosition ChessPosition object of the current position of the piece
+     * @param moves The List object that discovered moves will be added to
      */
     private void pawnMoves(ChessBoard board, ChessPosition myPosition, List<ChessMove> moves) {
 

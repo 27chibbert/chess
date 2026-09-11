@@ -3,6 +3,7 @@ package chess;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Represents a single chess piece
@@ -11,11 +12,38 @@ import java.util.List;
  * signature of the existing methods.
  */
 public class ChessPiece {
-    private ChessGame.TeamColor color;
-    private ChessPiece.PieceType piece;
+
+    private final ChessGame.TeamColor color;
+    private final ChessPiece.PieceType piece;
+
     public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
         color = pieceColor;
         piece = type;
+    }
+
+    @Override
+    public String toString() {
+        String str = "[";
+        switch (color) {
+            case BLACK -> str += "Black";
+            case WHITE -> str += "White";
+            default -> str = str + " ";
+        }
+        str += " ";
+        switch (piece) {
+            case KING -> str += "King";
+            case QUEEN -> str += "Queen";
+            case ROOK -> str += "Rook";
+            case BISHOP -> str += "Bishop";
+            case KNIGHT -> str += "Knight";
+            case PAWN -> str += "Pawn";
+            default -> str += " ";
+        }
+        str += "]";
+        return str;
+    }
+    public int hashCode() {
+        return Objects.hash(toString());
     }
 
     /**
@@ -54,27 +82,13 @@ public class ChessPiece {
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         List<ChessMove> moves = new ArrayList<>();
         switch (piece) {
-            case KING -> {
-                kingMoves(board, myPosition, moves);
-            }
-            case QUEEN -> {
-                queenMoves(board, myPosition, moves);
-            }
-            case ROOK -> {
-                rookMoves(board, myPosition, moves);
-            }
-            case BISHOP -> {
-                bishopMoves(board, myPosition, moves);
-            }
-            case KNIGHT -> {
-                knightMoves(board, myPosition, moves);
-            }
-            case PAWN -> {
-                pawnMoves(board, myPosition, moves);
-            }
-            default -> {
-                return moves;
-            }
+            case KING -> kingMoves(board, myPosition, moves);
+            case QUEEN -> queenMoves(board, myPosition, moves);
+            case ROOK -> rookMoves(board, myPosition, moves);
+            case BISHOP -> bishopMoves(board, myPosition, moves);
+            case KNIGHT -> knightMoves(board, myPosition, moves);
+            case PAWN -> pawnMoves(board, myPosition, moves);
+            default -> {return moves;}
         }
         return moves;
     }
@@ -88,7 +102,65 @@ public class ChessPiece {
 
     }
     private void bishopMoves(ChessBoard board, ChessPosition myPosition, List<ChessMove> moves) {
-
+        int startingRow = myPosition.getRow();
+        int startingCol = myPosition.getColumn();
+        int row = startingRow;
+        int col = startingCol;
+        int check = 0;
+        while (check != 4) {
+            switch (check) {
+                case 0 -> {
+                    row++;
+                    col++;
+                }
+                case 1 -> {
+                    row--;
+                    col++;
+                }
+                case 2 -> {
+                    row--;
+                    col--;
+                }
+                case 3 -> {
+                    row++;
+                    col--;
+                }
+            }
+            while (row >= 1 && row <= 8 && col >= 1 && col <= 8) {
+                //System.out.println("Checking position " + row + " " + col);
+                var chkSpace = board.getPiece(new ChessPosition(row, col));
+                if (chkSpace == null) {
+                    moves.add(new ChessMove(myPosition, new ChessPosition(row, col), null));
+                    //System.out.println("Added " + new ChessMove(myPosition, new ChessPosition(row, col), null).toString());
+                } else if (chkSpace.getTeamColor() != color) {
+                    moves.add(new ChessMove(myPosition, new ChessPosition(row, col), null));
+                    break;
+                } else {
+                    break;
+                }
+                switch (check) {
+                    case 0 -> {
+                        row++;
+                        col++;
+                    }
+                    case 1 -> {
+                        row--;
+                        col++;
+                    }
+                    case 2 -> {
+                        row--;
+                        col--;
+                    }
+                    case 3 -> {
+                        row++;
+                        col--;
+                    }
+                }
+            }
+            check++;
+            row = startingRow;
+            col = startingCol;
+        }
     }
     private void knightMoves(ChessBoard board, ChessPosition myPosition, List<ChessMove> moves) {
 

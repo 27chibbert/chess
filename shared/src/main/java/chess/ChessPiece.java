@@ -20,7 +20,11 @@ public class ChessPiece {
         color = pieceColor;
         piece = type;
     }
-
+    /**
+     * Returns string representation as [color piece]
+     * <p>
+     * Examples: [Black King], [White Rook]
+     */
     @Override
     public String toString() {
         String str = "[";
@@ -42,8 +46,25 @@ public class ChessPiece {
         str += "]";
         return str;
     }
+
+    /**
+     * Hashes string representation
+     * @return hash of toString method
+     */
     public int hashCode() {
         return Objects.hash(toString());
+    }
+
+    /**
+     * Determines if the given object is identical to itself
+     * @param o   the reference object with which to compare.
+     * @return true or false depending on answer
+     */
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o.getClass() != getClass()) return false;
+        ChessPiece move = (ChessPiece) o;
+        return toString().equals(o.toString());
     }
 
     /**
@@ -92,21 +113,47 @@ public class ChessPiece {
         }
         return moves;
     }
+
+    /**
+     * Fills List object with possible moves for a king
+     * @param board
+     * @param myPosition
+     * @param moves
+     */
     private void kingMoves(ChessBoard board, ChessPosition myPosition, List<ChessMove> moves) {
 
     }
+    /**
+     * Fills List object with possible moves for a queen
+     * @param board
+     * @param myPosition
+     * @param moves
+     */
     private void queenMoves(ChessBoard board, ChessPosition myPosition, List<ChessMove> moves) {
 
     }
+    /**
+     * Fills List object with possible moves for a rook
+     * @param board
+     * @param myPosition
+     * @param moves
+     */
     private void rookMoves(ChessBoard board, ChessPosition myPosition, List<ChessMove> moves) {
 
     }
+    /**
+     * Fills List object with possible moves for a bishop
+     * @param board
+     * @param myPosition
+     * @param moves
+     */
     private void bishopMoves(ChessBoard board, ChessPosition myPosition, List<ChessMove> moves) {
         int startingRow = myPosition.getRow();
         int startingCol = myPosition.getColumn();
         int row = startingRow;
         int col = startingCol;
         int check = 0;
+        // the check variable determines what direction the next space to check will be in. 0 is Up-right, and clockwise from there
         while (check != 4) {
             switch (check) {
                 case 0 -> {
@@ -126,8 +173,8 @@ public class ChessPiece {
                     col--;
                 }
             }
+            // while loop breaks when row or column escapes the board.
             while (row >= 1 && row <= 8 && col >= 1 && col <= 8) {
-                //System.out.println("Checking position " + row + " " + col);
                 var chkSpace = board.getPiece(new ChessPosition(row, col));
                 if (chkSpace == null) {
                     moves.add(new ChessMove(myPosition, new ChessPosition(row, col), null));
@@ -162,9 +209,21 @@ public class ChessPiece {
             col = startingCol;
         }
     }
+    /**
+     * Fills List object with possible moves for a knight
+     * @param board
+     * @param myPosition
+     * @param moves
+     */
     private void knightMoves(ChessBoard board, ChessPosition myPosition, List<ChessMove> moves) {
 
     }
+    /**
+     * Fills List object with possible moves for a pawn
+     * @param board
+     * @param myPosition
+     * @param moves
+     */
     private void pawnMoves(ChessBoard board, ChessPosition myPosition, List<ChessMove> moves) {
 
     }

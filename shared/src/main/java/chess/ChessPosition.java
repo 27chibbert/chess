@@ -15,7 +15,11 @@ public class ChessPosition {
         rank = row;
         file = col;
     }
-
+    /**
+     * Determines if the given object is identical to itself
+     * @param o   the reference object with which to compare.
+     * @return true or false depending on answer
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -23,7 +27,10 @@ public class ChessPosition {
         ChessPosition move = (ChessPosition) o;
         return toString().equals(o.toString());
     }
-
+    /**
+     * Hashes string representation
+     * @return hash of toString method
+     */
     @Override
     public int hashCode() {
         return Objects.hash(toString());

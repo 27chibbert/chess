@@ -20,7 +20,11 @@ public class ChessMove {
         end = endPosition;
         promotion = promotionPiece;
     }
-
+    /**
+     * Determines if the given object is identical to itself
+     * @param o   the reference object with which to compare.
+     * @return true or false depending on answer
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -28,13 +32,20 @@ public class ChessMove {
         ChessMove move = (ChessMove) o;
         return toString().equals(o.toString());
     }
-
+    /**
+     * Hashes string representation
+     * @return hash of toString method
+     */
     @Override
     public int hashCode() {
         //System.out.println(Objects.hash(start, end));
         return Objects.hash(toString());
     }
-
+    /**
+     * Returns string representation as (#,#)->(#,#) with optional |[piece] if promotion is done
+     * <p>
+     * Examples: (1,2)->(1,4) , (2,7)->(2,8)|[White Queen]
+     */
     @Override
     public String toString() {
         if (promotion != null) {

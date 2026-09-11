@@ -399,7 +399,58 @@ public class ChessPiece {
      * @param moves The List object that discovered moves will be added to
      */
     private void knightMoves(ChessBoard board, ChessPosition myPosition, List<ChessMove> moves) {
-
+        int startingRow = myPosition.getRow();
+        int startingCol = myPosition.getColumn();
+        int row = startingRow;
+        int col = startingCol;
+        int check = 0;
+        while (check != 8) {
+            switch (check) {
+                case 0 -> {
+                    row += 2;
+                    col++;
+                }
+                case 1 -> {
+                    row += 2;
+                    col--;
+                }
+                case 2 -> {
+                    row -= 2;
+                    col++;
+                }
+                case 3 -> {
+                    row -= 2;
+                    col--;
+                }
+                case 4 -> {
+                    row++;
+                    col += 2;
+                }
+                case 5 -> {
+                    row--;
+                    col += 2;
+                }
+                case 6 -> {
+                    row++;
+                    col -= 2;
+                }
+                case 7 -> {
+                    row--;
+                    col -= 2;
+                }
+            }
+            if (row >= 1 && row <= 8 && col >= 1 && col <= 8) {
+                ChessPiece chkSpace = board.getPiece(new ChessPosition(row, col));
+                if (chkSpace == null) {
+                    moves.add(new ChessMove(myPosition, new ChessPosition(row, col), null));
+                } else if (chkSpace.getTeamColor() != this.color) {
+                    moves.add(new ChessMove(myPosition, new ChessPosition(row, col), null));
+                }
+            }
+            check++;
+            row = startingRow;
+            col = startingCol;
+        }
     }
     /**
      * Fills List object with possible moves for a pawn

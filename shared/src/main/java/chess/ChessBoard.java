@@ -1,7 +1,6 @@
 package chess;
 
 import java.util.Objects;
-
 import static chess.ChessGame.TeamColor;
 import static chess.ChessPiece.PieceType;
 

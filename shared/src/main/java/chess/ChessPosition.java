@@ -11,9 +11,9 @@ import java.util.Objects;
 public class ChessPosition {
     private int file;
     private int rank;
-    public ChessPosition(int row, int col) {
-        rank = row;
-        file = col;
+    public ChessPosition(int col, int row) {
+        file = row;
+        rank = col;
     }
     /**
      * Determines if the given object is identical to itself
@@ -24,8 +24,8 @@ public class ChessPosition {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o.getClass() != getClass()) return false;
-        ChessPosition move = (ChessPosition) o;
-        return toString().equals(o.toString());
+        ChessPosition obj = (ChessPosition) o;
+        return toString().equals(obj.toString());
     }
     /**
      * Hashes string representation
@@ -38,14 +38,26 @@ public class ChessPosition {
 
     @Override
     public String toString() {
-        return "(" + file + "," + rank + ")";
+        String str = "(-";
+        switch (file) {
+            case 0 -> str += "H";
+            case 1 -> str += "G";
+            case 2 -> str += "F";
+            case 3 -> str += "E";
+            case 4 -> str += "D";
+            case 5 -> str += "C";
+            case 6 -> str += "B";
+            case 7 -> str += "A";
+        }
+        str = str + rank + "-)";
+        return str;
     }
     /**
      * @return which row this position is in
      * 1 codes for the bottom row
      */
     public int getRow() {
-        return rank;
+        return file;
     }
 
     /**
@@ -53,6 +65,6 @@ public class ChessPosition {
      * 1 codes for the left column
      */
     public int getColumn() {
-        return file;
+        return rank;
     }
 }

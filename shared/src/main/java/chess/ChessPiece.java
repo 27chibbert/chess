@@ -122,8 +122,8 @@ public class ChessPiece {
      * @param moves The List object that discovered moves will be added to
      */
     private void kingMoves(ChessBoard board, ChessPosition myPosition, List<ChessMove> moves) {
-        int startingRank = myPosition.getColumn();
-        int startingFile = myPosition.getRow();
+        int startingRank = myPosition.getRank();
+        int startingFile = myPosition.getFile();
         int file = startingFile;
         int rank = startingRank;
         int check = 0;
@@ -179,8 +179,8 @@ public class ChessPiece {
      * @param moves The List object that discovered moves will be added to
      */
     private void queenMoves(ChessBoard board, ChessPosition myPosition, List<ChessMove> moves) {
-        int startingRank = myPosition.getColumn();
-        int startingFile = myPosition.getRow();
+        int startingRank = myPosition.getRank();
+        int startingFile = myPosition.getFile();
         int file = startingFile;
         int rank = startingRank;
         int check = 0;
@@ -245,8 +245,8 @@ public class ChessPiece {
      * @param moves The List object that discovered moves will be added to
      */
     private void rookMoves(ChessBoard board, ChessPosition myPosition, List<ChessMove> moves) {
-        int startingRank = myPosition.getColumn();
-        int startingFile = myPosition.getRow();
+        int startingRank = myPosition.getRank();
+        int startingFile = myPosition.getFile();
         int file = startingFile;
         int rank = startingRank;
         int check = 0;
@@ -295,8 +295,8 @@ public class ChessPiece {
      * @param moves The List object that discovered moves will be added to
      */
     private void bishopMoves(ChessBoard board, ChessPosition myPosition, List<ChessMove> moves) {
-        int startingRank = myPosition.getColumn();
-        int startingFile = myPosition.getRow();
+        int startingRank = myPosition.getRank();
+        int startingFile = myPosition.getFile();
         int file = startingFile;
         int rank = startingRank;
         int check = 0;
@@ -349,8 +349,8 @@ public class ChessPiece {
      * @param moves The List object that discovered moves will be added to
      */
     private void knightMoves(ChessBoard board, ChessPosition myPosition, List<ChessMove> moves) {
-        int startingRank = myPosition.getColumn();
-        int startingFile = myPosition.getRow();
+        int startingRank = myPosition.getRank();
+        int startingFile = myPosition.getFile();
         int file = startingFile;
         int rank = startingRank;
         int check = 0;
@@ -410,8 +410,8 @@ public class ChessPiece {
      * @param moves The List object that discovered moves will be added to
      */
     private void pawnMoves(ChessBoard board, ChessPosition myPosition, List<ChessMove> moves) {
-        int startingRank = myPosition.getColumn();
-        int startingFile = myPosition.getRow();
+        int startingRank = myPosition.getRank();
+        int startingFile = myPosition.getFile();
         int file = startingFile;
         int rank = startingRank;
         int check = 0;

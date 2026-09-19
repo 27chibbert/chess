@@ -74,7 +74,7 @@ public class ChessBoard {
      * @param piece    the piece to add
      */
     public void addPiece(ChessPosition position, ChessPiece piece) {
-        board[position.getColumn() - 1][position.getRow() - 1] = piece;
+        board[position.getRank() - 1][position.getFile() - 1] = piece;
     }
 
     /**
@@ -85,7 +85,7 @@ public class ChessBoard {
      * position
      */
     public ChessPiece getPiece(ChessPosition position) {
-        return board[position.getColumn() - 1][position.getRow() - 1];
+        return board[position.getRank() - 1][position.getFile() - 1];
     }
 
     /**

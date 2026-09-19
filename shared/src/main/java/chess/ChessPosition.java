@@ -56,7 +56,7 @@ public class ChessPosition {
      * @return which row this position is in
      * 1 codes for the bottom row
      */
-    public int getRow() {
+    public int getFile() {
         return file;
     }
 
@@ -64,7 +64,11 @@ public class ChessPosition {
      * @return which column this position is in
      * 1 codes for the left column
      */
-    public int getColumn() {
+    public int getRank() {
         return rank;
     }
+
+    public int getColumn() {return getRank(); }
+
+    public int getRow() { return getFile(); }
 }

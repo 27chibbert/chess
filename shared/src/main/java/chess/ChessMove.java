@@ -29,8 +29,8 @@ public class ChessMove {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o.getClass() != getClass()) return false;
-        ChessMove move = (ChessMove) o;
-        return toString().equals(o.toString());
+        ChessMove obj = (ChessMove) o;
+        return toString().equals(obj.toString());
     }
     /**
      * Hashes string representation
@@ -38,7 +38,6 @@ public class ChessMove {
      */
     @Override
     public int hashCode() {
-        //System.out.println(Objects.hash(start, end));
         return Objects.hash(toString());
     }
     /**
@@ -48,11 +47,21 @@ public class ChessMove {
      */
     @Override
     public String toString() {
+        String str = "{" + start.toString() + " => " + end.toString();
         if (promotion != null) {
-            return start.toString() + "->" + end.toString() + "|" + promotion.toString();
-        } else {
-            return start.toString() + "->" + end.toString();
+            str += " ^^^ ";
+            switch (promotion) {
+                case PAWN -> str += "Pawn";
+                case KNIGHT -> str += "Knight";
+                case BISHOP -> str += "Bishop";
+                case ROOK -> str += "Rook";
+                case QUEEN -> str += "Queen";
+                case KING -> str += "King";
+                default -> str += "Mystery";
+            }
         }
+        str += "}";
+        return str;
     }
     /**
      * @return ChessPosition of starting location

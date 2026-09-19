@@ -30,22 +30,20 @@ public class ChessPiece {
     @Override
     public String toString() {
         String str = "[";
-        switch (color) {
-            case BLACK -> str += "Black";
-            case WHITE -> str += "White";
-            default -> str = str + " ";
+        switch (getTeamColor()) {
+            case WHITE -> str += "White ";
+            case BLACK -> str += "Black ";
+            default -> str += "Neutral ";
         }
-        str += " ";
-        switch (piece) {
-            case KING -> str += "King";
-            case QUEEN -> str += "Queen";
-            case ROOK -> str += "Rook";
-            case BISHOP -> str += "Bishop";
-            case KNIGHT -> str += "Knight";
-            case PAWN -> str += "Pawn";
-            default -> str += " ";
+        switch (getPieceType()) {
+            case PAWN -> str += "Pawn]";
+            case KNIGHT -> str += "Knight]";
+            case BISHOP -> str += "Bishop]";
+            case ROOK -> str += "Rook]";
+            case QUEEN -> str += "Queen]";
+            case KING -> str += "King]";
+            default -> str += "Mystery]";
         }
-        str += "]";
         return str;
     }
 
@@ -67,8 +65,8 @@ public class ChessPiece {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o.getClass() != getClass()) return false;
-        ChessPiece move = (ChessPiece) o;
-        return toString().equals(o.toString());
+        ChessPiece obj = (ChessPiece) o;
+        return toString().equals(obj.toString());
     }
 
     /**
@@ -106,14 +104,13 @@ public class ChessPiece {
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         List<ChessMove> moves = new ArrayList<>();
-        switch (piece) {
-            case KING -> kingMoves(board, myPosition, moves);
-            case QUEEN -> queenMoves(board, myPosition, moves);
-            case ROOK -> rookMoves(board, myPosition, moves);
-            case BISHOP -> bishopMoves(board, myPosition, moves);
-            case KNIGHT -> knightMoves(board, myPosition, moves);
+        switch (getPieceType()) {
             case PAWN -> pawnMoves(board, myPosition, moves);
-            default -> {return moves;}
+            case KNIGHT -> knightMoves(board, myPosition, moves);
+            case BISHOP -> bishopMoves(board, myPosition, moves);
+            case ROOK -> rookMoves(board, myPosition, moves);
+            case QUEEN -> queenMoves(board, myPosition, moves);
+            case KING -> kingMoves(board, myPosition, moves);
         }
         return moves;
     }
@@ -125,53 +122,54 @@ public class ChessPiece {
      * @param moves The List object that discovered moves will be added to
      */
     private void kingMoves(ChessBoard board, ChessPosition myPosition, List<ChessMove> moves) {
-        int startingRow = myPosition.getRow();
-        int startingCol = myPosition.getColumn();
-        int row = startingRow;
-        int col = startingCol;
+        int startingRank = myPosition.getRank();
+        int startingFile = myPosition.getFile();
+        int file = startingFile;
+        int rank = startingRank;
         int check = 0;
-        while (check != 8) {
+        while (check < 8) {
             switch (check) {
                 case 0 -> {
-                    row++;
-                    col++;
+                    file++;
+                    rank++;
                 }
                 case 1 -> {
-                    row--;
-                    col++;
+                    file++;
+                    rank--;
                 }
                 case 2 -> {
-                    row--;
-                    col--;
+                    file--;
+                    rank--;
                 }
                 case 3 -> {
-                    row++;
-                    col--;
+                    file--;
+                    rank++;
                 }
                 case 4 -> {
-                    row++;
+                    file++;
                 }
                 case 5 -> {
-                    col--;
+                    rank--;
                 }
                 case 6 -> {
-                    row--;
+                    file--;
                 }
                 case 7 -> {
-                    col++;
+                    rank++;
                 }
             }
-            if (row >= 1 && row <= 8 && col >= 1 && col <= 8) {
-                ChessPiece chkSpace = board.getPiece(new ChessPosition(row, col));
-                if (chkSpace == null) {
-                    moves.add(new ChessMove(myPosition, new ChessPosition(row, col), null));
-                } else if (chkSpace.getTeamColor() != this.color) {
-                    moves.add(new ChessMove(myPosition, new ChessPosition(row, col), null));
+            if (file <= 8 && file >= 1 && rank >= 1 && rank <= 8) {
+                ChessPiece space = board.getPiece(new ChessPosition(rank, file));
+                ChessMove newMove = new ChessMove(myPosition, new ChessPosition(rank, file), null);
+                if (space == null) {
+                    moves.add(newMove);
+                } else if (space.getTeamColor() != getTeamColor()) {
+                    moves.add(newMove);
                 }
             }
             check++;
-            row = startingRow;
-            col = startingCol;
+            file = startingFile;
+            rank = startingRank;
         }
     }
     /**
@@ -181,89 +179,63 @@ public class ChessPiece {
      * @param moves The List object that discovered moves will be added to
      */
     private void queenMoves(ChessBoard board, ChessPosition myPosition, List<ChessMove> moves) {
-        int startingRow = myPosition.getRow();
-        int startingCol = myPosition.getColumn();
-        int row = startingRow;
-        int col = startingCol;
+        int startingRank = myPosition.getRank();
+        int startingFile = myPosition.getFile();
+        int file = startingFile;
+        int rank = startingRank;
         int check = 0;
-        // the check variable determines what direction the next space to check will be in. 0 is Up-right, and clockwise from there
-        while (check != 8) {
+        boolean flag = false;
+        while (check < 8) {
             switch (check) {
                 case 0 -> {
-                    row++;
-                    col++;
+                    file++;
+                    rank++;
                 }
                 case 1 -> {
-                    row--;
-                    col++;
+                    file++;
+                    rank--;
                 }
                 case 2 -> {
-                    row--;
-                    col--;
+                    file--;
+                    rank--;
                 }
                 case 3 -> {
-                    row++;
-                    col--;
+                    file--;
+                    rank++;
                 }
                 case 4 -> {
-                    row++;
+                    file++;
                 }
                 case 5 -> {
-                    col--;
+                    rank--;
                 }
                 case 6 -> {
-                    row--;
+                    file--;
                 }
                 case 7 -> {
-                    col++;
+                    rank++;
                 }
             }
-            // while loop breaks when row or column escapes the board.
-            while (row >= 1 && row <= 8 && col >= 1 && col <= 8) {
-                ChessPiece chkSpace = board.getPiece(new ChessPosition(row, col));
-                if (chkSpace == null) {
-                    moves.add(new ChessMove(myPosition, new ChessPosition(row, col), null));
-                    //System.out.println("Added " + new ChessMove(myPosition, new ChessPosition(row, col), null).toString());
-                } else if (chkSpace.getTeamColor() != this.color) {
-                    moves.add(new ChessMove(myPosition, new ChessPosition(row, col), null));
-                    break;
+            if (file <= 8 && file >= 1 && rank >= 1 && rank <= 8) {
+                ChessPiece space = board.getPiece(new ChessPosition(rank, file));
+                ChessMove newMove = new ChessMove(myPosition, new ChessPosition(rank, file), null);
+                if (space == null) {
+                    moves.add(newMove);
+                } else if (space.getTeamColor() != getTeamColor()) {
+                    moves.add(newMove);
+                    flag = true;
                 } else {
-                    break;
+                    flag = true;
                 }
-                switch (check) {
-                    case 0 -> {
-                        row++;
-                        col++;
-                    }
-                    case 1 -> {
-                        row--;
-                        col++;
-                    }
-                    case 2 -> {
-                        row--;
-                        col--;
-                    }
-                    case 3 -> {
-                        row++;
-                        col--;
-                    }
-                    case 4 -> {
-                        row++;
-                    }
-                    case 5 -> {
-                        col--;
-                    }
-                    case 6 -> {
-                        row--;
-                    }
-                    case 7 -> {
-                        col++;
-                    }
-                }
+            } else {
+                flag = true;
             }
-            check++;
-            row = startingRow;
-            col = startingCol;
+            if (flag) {
+                flag = false;
+                check++;
+                file = startingFile;
+                rank = startingRank;
+            }
         }
     }
     /**
@@ -273,57 +245,47 @@ public class ChessPiece {
      * @param moves The List object that discovered moves will be added to
      */
     private void rookMoves(ChessBoard board, ChessPosition myPosition, List<ChessMove> moves) {
-        int startingRow = myPosition.getRow();
-        int startingCol = myPosition.getColumn();
-        int row = startingRow;
-        int col = startingCol;
+        int startingRank = myPosition.getRank();
+        int startingFile = myPosition.getFile();
+        int file = startingFile;
+        int rank = startingRank;
         int check = 0;
-        // the check variable determines what direction the next space to check will be in. 0 is right, and clockwise from there
-        while (check != 4) {
+        boolean flag = false;
+        while (check < 4) {
             switch (check) {
                 case 0 -> {
-                    row++;
+                    file++;
                 }
                 case 1 -> {
-                    col--;
+                    rank--;
                 }
                 case 2 -> {
-                    row--;
+                    file--;
                 }
                 case 3 -> {
-                    col++;
+                    rank++;
                 }
             }
-            // while loop breaks when row or column escapes the board.
-            while (row >= 1 && row <= 8 && col >= 1 && col <= 8) {
-                ChessPiece chkSpace = board.getPiece(new ChessPosition(row, col));
-                if (chkSpace == null) {
-                    moves.add(new ChessMove(myPosition, new ChessPosition(row, col), null));
-                    //System.out.println("Added " + new ChessMove(myPosition, new ChessPosition(row, col), null).toString());
-                } else if (chkSpace.getTeamColor() != color) {
-                    moves.add(new ChessMove(myPosition, new ChessPosition(row, col), null));
-                    break;
+            if (file <= 8 && file >= 1 && rank >= 1 && rank <= 8) {
+                ChessPiece space = board.getPiece(new ChessPosition(rank, file));
+                ChessMove newMove = new ChessMove(myPosition, new ChessPosition(rank, file), null);
+                if (space == null) {
+                    moves.add(newMove);
+                } else if (space.getTeamColor() != getTeamColor()) {
+                    moves.add(newMove);
+                    flag = true;
                 } else {
-                    break;
+                    flag = true;
                 }
-                switch (check) {
-                    case 0 -> {
-                        row++;
-                    }
-                    case 1 -> {
-                        col--;
-                    }
-                    case 2 -> {
-                        row--;
-                    }
-                    case 3 -> {
-                        col++;
-                    }
-                }
+            } else {
+                flag = true;
             }
-            check++;
-            row = startingRow;
-            col = startingCol;
+            if (flag) {
+                flag = false;
+                check++;
+                file = startingFile;
+                rank = startingRank;
+            }
         }
     }
     /**
@@ -333,65 +295,51 @@ public class ChessPiece {
      * @param moves The List object that discovered moves will be added to
      */
     private void bishopMoves(ChessBoard board, ChessPosition myPosition, List<ChessMove> moves) {
-        int startingRow = myPosition.getRow();
-        int startingCol = myPosition.getColumn();
-        int row = startingRow;
-        int col = startingCol;
+        int startingRank = myPosition.getRank();
+        int startingFile = myPosition.getFile();
+        int file = startingFile;
+        int rank = startingRank;
         int check = 0;
-        // the check variable determines what direction the next space to check will be in. 0 is Up-right, and clockwise from there
-        while (check != 4) {
+        boolean flag = false;
+        while (check < 4) {
             switch (check) {
                 case 0 -> {
-                    row++;
-                    col++;
+                    file++;
+                    rank++;
                 }
                 case 1 -> {
-                    row--;
-                    col++;
+                    file++;
+                    rank--;
                 }
                 case 2 -> {
-                    row--;
-                    col--;
+                    file--;
+                    rank--;
                 }
                 case 3 -> {
-                    row++;
-                    col--;
+                    file--;
+                    rank++;
                 }
             }
-            // while loop breaks when row or column escapes the board.
-            while (row >= 1 && row <= 8 && col >= 1 && col <= 8) {
-                ChessPiece chkSpace = board.getPiece(new ChessPosition(row, col));
-                if (chkSpace == null) {
-                    moves.add(new ChessMove(myPosition, new ChessPosition(row, col), null));
-                    //System.out.println("Added " + new ChessMove(myPosition, new ChessPosition(row, col), null).toString());
-                } else if (chkSpace.getTeamColor() != this.color) {
-                    moves.add(new ChessMove(myPosition, new ChessPosition(row, col), null));
-                    break;
+            if (file <= 8 && file >= 1 && rank >= 1 && rank <= 8) {
+                ChessPiece space = board.getPiece(new ChessPosition(rank, file));
+                ChessMove newMove = new ChessMove(myPosition, new ChessPosition(rank, file), null);
+                if (space == null) {
+                    moves.add(newMove);
+                } else if (space.getTeamColor() != getTeamColor()) {
+                    moves.add(newMove);
+                    flag = true;
                 } else {
-                    break;
+                    flag = true;
                 }
-                switch (check) {
-                    case 0 -> {
-                        row++;
-                        col++;
-                    }
-                    case 1 -> {
-                        row--;
-                        col++;
-                    }
-                    case 2 -> {
-                        row--;
-                        col--;
-                    }
-                    case 3 -> {
-                        row++;
-                        col--;
-                    }
-                }
+            } else {
+                flag = true;
             }
-            check++;
-            row = startingRow;
-            col = startingCol;
+            if (flag) {
+                flag = false;
+                check++;
+                file = startingFile;
+                rank = startingRank;
+            }
         }
     }
     /**
@@ -401,57 +349,58 @@ public class ChessPiece {
      * @param moves The List object that discovered moves will be added to
      */
     private void knightMoves(ChessBoard board, ChessPosition myPosition, List<ChessMove> moves) {
-        int startingRow = myPosition.getRow();
-        int startingCol = myPosition.getColumn();
-        int row = startingRow;
-        int col = startingCol;
+        int startingRank = myPosition.getRank();
+        int startingFile = myPosition.getFile();
+        int file = startingFile;
+        int rank = startingRank;
         int check = 0;
-        while (check != 8) {
+        while (check < 8) {
             switch (check) {
                 case 0 -> {
-                    row += 2;
-                    col++;
+                    file++;
+                    rank += 2;
                 }
                 case 1 -> {
-                    row += 2;
-                    col--;
+                    file++;
+                    rank -= 2;
                 }
                 case 2 -> {
-                    row -= 2;
-                    col++;
+                    file--;
+                    rank += 2;
                 }
                 case 3 -> {
-                    row -= 2;
-                    col--;
+                    file--;
+                    rank -= 2;
                 }
                 case 4 -> {
-                    row++;
-                    col += 2;
+                    rank++;
+                    file += 2;
                 }
                 case 5 -> {
-                    row--;
-                    col += 2;
+                    rank++;
+                    file -= 2;
                 }
                 case 6 -> {
-                    row++;
-                    col -= 2;
+                    rank--;
+                    file += 2;
                 }
                 case 7 -> {
-                    row--;
-                    col -= 2;
+                    rank--;
+                    file -= 2;
                 }
             }
-            if (row >= 1 && row <= 8 && col >= 1 && col <= 8) {
-                ChessPiece chkSpace = board.getPiece(new ChessPosition(row, col));
-                if (chkSpace == null) {
-                    moves.add(new ChessMove(myPosition, new ChessPosition(row, col), null));
-                } else if (chkSpace.getTeamColor() != this.color) {
-                    moves.add(new ChessMove(myPosition, new ChessPosition(row, col), null));
+            if (file <= 8 && file >= 1 && rank >= 1 && rank <= 8) {
+                ChessPiece space = board.getPiece(new ChessPosition(rank, file));
+                ChessMove newMove = new ChessMove(myPosition, new ChessPosition(rank, file), null);
+                if (space == null) {
+                    moves.add(newMove);
+                } else if (space.getTeamColor() != getTeamColor()) {
+                    moves.add(newMove);
                 }
             }
             check++;
-            row = startingRow;
-            col = startingCol;
+            file = startingFile;
+            rank = startingRank;
         }
     }
     /**
@@ -461,156 +410,77 @@ public class ChessPiece {
      * @param moves The List object that discovered moves will be added to
      */
     private void pawnMoves(ChessBoard board, ChessPosition myPosition, List<ChessMove> moves) {
-        int startingRow = myPosition.getRow();
-        int startingCol = myPosition.getColumn();
-        int row = startingRow;
-        int col = startingCol;
+        int startingRank = myPosition.getRank();
+        int startingFile = myPosition.getFile();
+        int file = startingFile;
+        int rank = startingRank;
         int check = 0;
-        while (check != 4) {
-            if (color == WHITE) {
+        while (check < 4) {
+            if (getTeamColor() == ChessGame.TeamColor.WHITE) {
                 switch (check) {
-                    case 0 -> {
-                        row++;
-                        if (row >= 1 && row <= 8 && col >= 1 && col <= 8) {
-                            ChessPiece chkSpace = board.getPiece(new ChessPosition(row, col));
-                            if (chkSpace == null) {
-                                if (row == 8) {
-                                    moves.add(new ChessMove(myPosition, new ChessPosition(row, col), PieceType.QUEEN));
-                                    moves.add(new ChessMove(myPosition, new ChessPosition(row, col), PieceType.ROOK));
-                                    moves.add(new ChessMove(myPosition, new ChessPosition(row, col), PieceType.BISHOP));
-                                    moves.add(new ChessMove(myPosition, new ChessPosition(row, col), PieceType.KNIGHT));
-                                } else {
-                                    moves.add(new ChessMove(myPosition, new ChessPosition(row, col), null));
-                                }
-                            }
-                        }
-                    }
-                    case 1 -> {
-                        if (startingRow == 2) {
-                            row++;
-                            ChessPiece chkSpace = board.getPiece(new ChessPosition(row, col));
-                            if (chkSpace == null) {
-                                row++;
-                                chkSpace = board.getPiece(new ChessPosition(row, col));
-                                if (chkSpace == null) {
-                                    moves.add(new ChessMove(myPosition, new ChessPosition(row, col), null));
-                                }
-                            }
-                        }
-                    }
+                    case 0 -> rank++;
+                    case 1 -> rank += 2;
                     case 2 -> {
-                        row++;
-                        col--;
-                        if (row >= 1 && row <= 8 && col >= 1 && col <= 8) {
-                            ChessPiece chkSpace = board.getPiece(new ChessPosition(row, col));
-                            if (chkSpace != null) {
-                                if (chkSpace.getTeamColor() != color) {
-                                    if (row == 8) {
-                                        moves.add(new ChessMove(myPosition, new ChessPosition(row, col), PieceType.QUEEN));
-                                        moves.add(new ChessMove(myPosition, new ChessPosition(row, col), PieceType.ROOK));
-                                        moves.add(new ChessMove(myPosition, new ChessPosition(row, col), PieceType.BISHOP));
-                                        moves.add(new ChessMove(myPosition, new ChessPosition(row, col), PieceType.KNIGHT));
-                                    } else {
-                                        moves.add(new ChessMove(myPosition, new ChessPosition(row, col), null));
-                                    }
-                                }
-                            }
-                        }
+                        rank++;
+                        file++;
                     }
                     case 3 -> {
-                        row++;
-                        col++;
-                        if (row >= 1 && row <= 8 && col >= 1 && col <= 8) {
-                            ChessPiece chkSpace = board.getPiece(new ChessPosition(row, col));
-                            if (chkSpace != null) {
-                                if (chkSpace.getTeamColor() != color) {
-                                    if (row == 8) {
-                                    moves.add(new ChessMove(myPosition, new ChessPosition(row, col), PieceType.QUEEN));
-                                    moves.add(new ChessMove(myPosition, new ChessPosition(row, col), PieceType.ROOK));
-                                    moves.add(new ChessMove(myPosition, new ChessPosition(row, col), PieceType.BISHOP));
-                                    moves.add(new ChessMove(myPosition, new ChessPosition(row, col), PieceType.KNIGHT));
-                                    } else {
-                                    moves.add(new ChessMove(myPosition, new ChessPosition(row, col), null));
-                                    }
-                                }
-                            }
-                        }
+                        rank++;
+                        file--;
                     }
                 }
             } else {
                 switch (check) {
-                    case 0 -> {
-                        row--;
-                        if (row >= 1 && row <= 8 && col >= 1 && col <= 8) {
-                            ChessPiece chkSpace = board.getPiece(new ChessPosition(row, col));
-                            if (chkSpace == null) {
-                                if (row == 1) {
-                                    moves.add(new ChessMove(myPosition, new ChessPosition(row, col), PieceType.QUEEN));
-                                    moves.add(new ChessMove(myPosition, new ChessPosition(row, col), PieceType.ROOK));
-                                    moves.add(new ChessMove(myPosition, new ChessPosition(row, col), PieceType.BISHOP));
-                                    moves.add(new ChessMove(myPosition, new ChessPosition(row, col), PieceType.KNIGHT));
-                                } else {
-                                    moves.add(new ChessMove(myPosition, new ChessPosition(row, col), null));
-                                }
-                            }
-                        }
-                    }
-                    case 1 -> {
-                        if (startingRow == 7) {
-                            row--;
-                            ChessPiece chkSpace = board.getPiece(new ChessPosition(row, col));
-                            if (chkSpace == null) {
-                                row--;
-                                chkSpace = board.getPiece(new ChessPosition(row, col));
-                                if (chkSpace == null) {
-                                    moves.add(new ChessMove(myPosition, new ChessPosition(row, col), null));
-                                }
-                            }
-                        }
-                    }
+                    case 0 -> rank--;
+                    case 1 -> rank -= 2;
                     case 2 -> {
-                        row--;
-                        col--;
-                        if (row >= 1 && row <= 8 && col >= 1 && col <= 8) {
-                            ChessPiece chkSpace = board.getPiece(new ChessPosition(row, col));
-                            if (chkSpace != null) {
-                                if (chkSpace.getTeamColor() != color) {
-                                    if (row == 1) {
-                                        moves.add(new ChessMove(myPosition, new ChessPosition(row, col), PieceType.QUEEN));
-                                        moves.add(new ChessMove(myPosition, new ChessPosition(row, col), PieceType.ROOK));
-                                        moves.add(new ChessMove(myPosition, new ChessPosition(row, col), PieceType.BISHOP));
-                                        moves.add(new ChessMove(myPosition, new ChessPosition(row, col), PieceType.KNIGHT));
-                                    } else {
-                                        moves.add(new ChessMove(myPosition, new ChessPosition(row, col), null));
-                                    }
-                                }
-                            }
-                        }
+                        rank--;
+                        file++;
                     }
                     case 3 -> {
-                        row--;
-                        col++;
-                        if (row >= 1 && row <= 8 && col >= 1 && col <= 8) {
-                            ChessPiece chkSpace = board.getPiece(new ChessPosition(row, col));
-                            if (chkSpace != null) {
-                                if (chkSpace.getTeamColor() != color) {
-                                    if (row == 1) {
-                                        moves.add(new ChessMove(myPosition, new ChessPosition(row, col), PieceType.QUEEN));
-                                        moves.add(new ChessMove(myPosition, new ChessPosition(row, col), PieceType.ROOK));
-                                        moves.add(new ChessMove(myPosition, new ChessPosition(row, col), PieceType.BISHOP));
-                                        moves.add(new ChessMove(myPosition, new ChessPosition(row, col), PieceType.KNIGHT));
-                                    } else {
-                                        moves.add(new ChessMove(myPosition, new ChessPosition(row, col), null));
-                                    }
-                                }
+                        rank--;
+                        file--;
+                    }
+                }
+            }
+            if (file <= 8 && file >= 1 && rank >= 1 && rank <= 8) {
+                ChessPiece space = board.getPiece(new ChessPosition(rank, file));
+                ChessMove newMove = new ChessMove(myPosition, new ChessPosition(rank, file), null);
+                if (space == null) {
+                    if (check == 0) {
+                        if (rank == 1 || rank == 8) {
+                            moves.add(new ChessMove(myPosition, new ChessPosition(rank, file), PieceType.QUEEN));
+                            moves.add(new ChessMove(myPosition, new ChessPosition(rank, file), PieceType.KNIGHT));
+                            moves.add(new ChessMove(myPosition, new ChessPosition(rank, file), PieceType.BISHOP));
+                            moves.add(new ChessMove(myPosition, new ChessPosition(rank, file), PieceType.ROOK));
+                        } else {
+                            moves.add(newMove);
+                        }
+                    } else if (check == 1) {
+                        if (getTeamColor() == ChessGame.TeamColor.WHITE) {
+                            if (startingRank == 2 && board.getPiece(new ChessPosition(rank - 1, file)) == null) {
+                                moves.add(newMove);
+                            }
+                        } else {
+                            if (startingRank == 7 && board.getPiece(new ChessPosition(rank + 1, file)) == null) {
+                                moves.add(newMove);
                             }
                         }
+                    }
+                } else if (space.getTeamColor() != getTeamColor() && (check == 2 || check == 3)) {
+                    if (rank == 1 || rank == 8) {
+                        moves.add(new ChessMove(myPosition, new ChessPosition(rank, file), PieceType.QUEEN));
+                        moves.add(new ChessMove(myPosition, new ChessPosition(rank, file), PieceType.KNIGHT));
+                        moves.add(new ChessMove(myPosition, new ChessPosition(rank, file), PieceType.BISHOP));
+                        moves.add(new ChessMove(myPosition, new ChessPosition(rank, file), PieceType.ROOK));
+                    } else {
+                        moves.add(newMove);
                     }
                 }
             }
             check++;
-            row = startingRow;
-            col = startingCol;
+            file = startingFile;
+            rank = startingRank;
         }
     }
 }

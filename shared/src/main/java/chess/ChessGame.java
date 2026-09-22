@@ -101,7 +101,11 @@ public class ChessGame {
      * @return True if the specified team is in check
      */
     public boolean isInCheck(TeamColor teamColor) {
-        return false;
+        if (RulesEngine.confirmCheck(board, teamColor)) {
+            return true;
+        } else {
+            return false;
+        }
         //throw new RuntimeException("Not implemented");
     }
 
@@ -112,7 +116,11 @@ public class ChessGame {
      * @return True if the specified team is in checkmate
      */
     public boolean isInCheckmate(TeamColor teamColor) {
-        return false;
+        if (RulesEngine.confirmCheckmate(board, teamColor)) {
+            return true;
+        } else {
+            return false;
+        }
         //throw new RuntimeException("Not implemented");
     }
 

@@ -40,6 +40,10 @@ public class RulesEngine {
         return true;
     }
 
+    public static boolean confirmStalemate(ChessBoard board, ChessGame.TeamColor color) {
+        return filterValidMoves(getAllMoves(board, color), board).isEmpty();
+    }
+
     public static Collection<ChessMove> filterValidMoves(Collection<ChessMove> moves, ChessBoard board) {
         List<ChessMove> validMoves = new ArrayList<>();
         //System.out.println(board.toString());

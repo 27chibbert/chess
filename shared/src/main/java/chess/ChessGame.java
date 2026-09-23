@@ -1,6 +1,8 @@
 package chess;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -133,7 +135,8 @@ public class ChessGame {
      * @return True if the specified team is in stalemate, otherwise false
      */
     public boolean isInStalemate(TeamColor teamColor) {
-        return false;
+        if (isInCheck(teamColor)) return false;
+        return RulesEngine.confirmStalemate(board, teamColor);
         //throw new RuntimeException("Not implemented");
     }
 

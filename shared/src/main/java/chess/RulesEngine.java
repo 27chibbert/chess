@@ -29,8 +29,7 @@ public class RulesEngine {
         for (ChessMove move : movesToCheck) {
             ChessBoard tempBoard = new ChessBoard(board);
             ChessPiece piece = tempBoard.getPiece(move.getStartPosition());
-            tempBoard.addPiece(move.getEndPosition(), piece);
-            tempBoard.clearPosition(move.getStartPosition());
+            tempBoard.executeMove(move);
             if (!confirmCheck(tempBoard, color)) {
                 //System.out.println(board.toString() + " Not in checkmate");
                 return false;
@@ -51,8 +50,7 @@ public class RulesEngine {
             ChessBoard tempBoard = new ChessBoard(board);
             ChessPiece piece = tempBoard.getPiece(move.getStartPosition());
             ChessGame.TeamColor color = piece.getTeamColor();
-            tempBoard.addPiece(move.getEndPosition(), piece);
-            tempBoard.clearPosition(move.getStartPosition());
+            tempBoard.executeMove(move);
             if (!confirmCheck(tempBoard, color)) {
                 validMoves.add(move);
                 //System.out.println(move.toString());

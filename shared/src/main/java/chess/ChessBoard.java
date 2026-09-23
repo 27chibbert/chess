@@ -79,6 +79,17 @@ public class ChessBoard {
     public int hashCode() {
         return Objects.hash(toString());
     }
+
+    public void executeMove(ChessMove move) {
+        ChessPiece piece = getPiece(move.getStartPosition());
+        clearPosition(move.getStartPosition());
+        if (move.getPromotionPiece() == null) {
+            addPiece(move.getEndPosition(), piece);
+        } else {
+            addPiece(move.getEndPosition(), new ChessPiece(piece.getTeamColor(), move.getPromotionPiece()));
+        }
+    }
+
     /**
      * Adds a chess piece to the chessboard
      *
@@ -89,7 +100,7 @@ public class ChessBoard {
         board[position.getRank() - 1][position.getFile() - 1] = piece;
     }
 
-    public void clearPosition(ChessPosition position) {
+    private void clearPosition(ChessPosition position) {
         board[position.getRank() - 1][position.getFile() - 1] = null;
     }
 

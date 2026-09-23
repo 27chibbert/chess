@@ -89,6 +89,10 @@ public class ChessBoard {
         board[position.getRank() - 1][position.getFile() - 1] = piece;
     }
 
+    public void clearPosition(ChessPosition position) {
+        board[position.getRank() - 1][position.getFile() - 1] = null;
+    }
+
     /**
      * Gets a chess piece on the chessboard
      *

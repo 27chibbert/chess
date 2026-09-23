@@ -79,6 +79,7 @@ public class ChessGame {
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
         ChessPiece piece = board.getPiece(startPosition);
         Collection<ChessMove> moves = piece.pieceMoves(board, startPosition);
+        moves = RulesEngine.filterValidMoves(moves, board);
         return moves;
     }
 

@@ -1,5 +1,6 @@
 package chess;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -29,14 +30,31 @@ public class RulesEngine {
             ChessBoard tempBoard = new ChessBoard(board);
             ChessPiece piece = tempBoard.getPiece(move.getStartPosition());
             tempBoard.addPiece(move.getEndPosition(), piece);
-            tempBoard.addPiece(move.getStartPosition(), null);
+            tempBoard.clearPosition(move.getStartPosition());
             if (!confirmCheck(tempBoard, color)) {
-                System.out.println(board.toString() + " Not in checkmate");
+                //System.out.println(board.toString() + " Not in checkmate");
                 return false;
             }
         }
-        System.out.println(board.toString() + "Checkmate!");
+        //System.out.println(board.toString() + "Checkmate!");
         return true;
+    }
+
+    public static Collection<ChessMove> filterValidMoves(Collection<ChessMove> moves, ChessBoard board) {
+        List<ChessMove> validMoves = new ArrayList<>();
+        //System.out.println(board.toString());
+        for (ChessMove move: moves) {
+            ChessBoard tempBoard = new ChessBoard(board);
+            ChessPiece piece = tempBoard.getPiece(move.getStartPosition());
+            ChessGame.TeamColor color = piece.getTeamColor();
+            tempBoard.addPiece(move.getEndPosition(), piece);
+            tempBoard.clearPosition(move.getStartPosition());
+            if (!confirmCheck(tempBoard, color)) {
+                validMoves.add(move);
+                //System.out.println(move.toString());
+            }
+        }
+        return validMoves;
     }
 
     private static ChessPosition getKingPosition(ChessBoard board, ChessGame.TeamColor color) {

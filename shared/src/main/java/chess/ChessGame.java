@@ -93,8 +93,16 @@ public class ChessGame {
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
         ChessPiece piece = board.getPiece(move.getStartPosition());
+        if (piece == null) throw new InvalidMoveException("Attempted a move beginning on an empty space");
+        if (board.getPiece(move.getStartPosition()).getTeamColor() != turn) throw new InvalidMoveException("Attempted to move opposite colored piece");
+        if (!RulesEngine.filterValidMoves(piece.pieceMoves(board, move.getStartPosition()), board).contains(move)) throw new InvalidMoveException("Attempted illegal move");
         board.addPiece(move.getEndPosition(), piece);
-        board.addPiece(move.getStartPosition(), null);
+        board.clearPosition(move.getStartPosition());
+        if (turn == TeamColor.WHITE) {
+            setTeamTurn(TeamColor.BLACK);
+        } else {
+            setTeamTurn(TeamColor.WHITE);
+        }
     }
 
     /**

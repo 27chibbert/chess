@@ -171,6 +171,10 @@ public class ChessPiece {
             file = startingFile;
             rank = startingRank;
         }
+        if (myPosition.getFile() == 5 && (myPosition.getRank() == 1 || myPosition.getRank() == 8)) {
+            moves.add(new ChessMove(myPosition, new ChessPosition(myPosition.getRank(), 3), PieceType.KING));
+            moves.add(new ChessMove(myPosition, new ChessPosition(myPosition.getRank(), 7), PieceType.KING));
+        }
     }
     /**
      * Fills List object with possible moves for a queen

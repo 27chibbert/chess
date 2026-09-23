@@ -15,11 +15,13 @@ public class ChessGame {
 
     private TeamColor turn;
     private ChessBoard board;
+    private GameFlags flags;
 
     public ChessGame() {
         board = new ChessBoard();
         board.resetBoard();
         turn = TeamColor.WHITE;
+        flags = new GameFlags();
     }
 
     @Override
@@ -81,7 +83,7 @@ public class ChessGame {
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
         ChessPiece piece = board.getPiece(startPosition);
         Collection<ChessMove> moves = piece.pieceMoves(board, startPosition);
-        moves = RulesEngine.filterValidMoves(moves, board);
+        moves = RulesEngine.filterValidMoves(moves, board, flags);
         return moves;
     }
 
@@ -95,8 +97,48 @@ public class ChessGame {
         ChessPiece piece = board.getPiece(move.getStartPosition());
         if (piece == null) throw new InvalidMoveException("Attempted a move beginning on an empty space");
         if (board.getPiece(move.getStartPosition()).getTeamColor() != turn) throw new InvalidMoveException("Attempted to move opposite colored piece");
-        if (!RulesEngine.filterValidMoves(piece.pieceMoves(board, move.getStartPosition()), board).contains(move)) throw new InvalidMoveException("Attempted illegal move");
+        if (!RulesEngine.filterValidMoves(piece.pieceMoves(board, move.getStartPosition()), board, flags).contains(move)) throw new InvalidMoveException("Attempted illegal move");
         board.executeMove(move);
+        if (move.getPromotionPiece() == ChessPiece.PieceType.KING) {
+            if (turn == TeamColor.WHITE) {
+                if (move.getEndPosition().getFile() == 7) {
+                    board.executeMove(new ChessMove(new ChessPosition(1, 8), new ChessPosition(1, 6), null));
+                } else if (move.getEndPosition().getFile() == 3) {
+                    board.executeMove(new ChessMove(new ChessPosition(1, 1), new ChessPosition(1, 4), null));
+                }
+            } else {
+                if (move.getEndPosition().getFile() == 7) {
+                    board.executeMove(new ChessMove(new ChessPosition(8, 8), new ChessPosition(8, 6), null));
+                } else if (move.getEndPosition().getFile() == 3) {
+                    board.executeMove(new ChessMove(new ChessPosition(8, 1), new ChessPosition(8, 4), null));
+                }
+            }
+        }
+        if (piece.getPieceType() == ChessPiece.PieceType.KING) {
+            if (turn == TeamColor.WHITE) {
+                flags.dropFlag(GameFlags.GameFlag.WhiteA);
+                flags.dropFlag(GameFlags.GameFlag.WhiteH);
+            } else {
+                flags.dropFlag(GameFlags.GameFlag.BlackA);
+                flags.dropFlag(GameFlags.GameFlag.BlackH);
+            }
+        }
+        if (piece.getPieceType() == ChessPiece.PieceType.ROOK) {
+            if (move.getStartPosition().getFile() == 1) {
+                if (turn == TeamColor.WHITE) {
+                    flags.dropFlag(GameFlags.GameFlag.WhiteA);
+                } else {
+                    flags.dropFlag(GameFlags.GameFlag.BlackA);
+                }
+            }
+            if (move.getStartPosition().getFile() == 8) {
+                if (turn == TeamColor.WHITE) {
+                    flags.dropFlag(GameFlags.GameFlag.WhiteH);
+                } else {
+                    flags.dropFlag(GameFlags.GameFlag.BlackH);
+                }
+            }
+        }
         if (turn == TeamColor.WHITE) {
             setTeamTurn(TeamColor.BLACK);
         } else {
@@ -143,7 +185,7 @@ public class ChessGame {
      */
     public boolean isInStalemate(TeamColor teamColor) {
         if (isInCheck(teamColor)) return false;
-        return RulesEngine.confirmStalemate(board, teamColor);
+        return RulesEngine.confirmStalemate(board, teamColor, flags);
         //throw new RuntimeException("Not implemented");
     }
 

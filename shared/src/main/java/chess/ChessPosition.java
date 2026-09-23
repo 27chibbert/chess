@@ -11,9 +11,9 @@ import java.util.Objects;
 public class ChessPosition {
     private int file;
     private int rank;
-    public ChessPosition(int col, int row) {
-        file = row;
-        rank = col;
+    public ChessPosition(int ran, int fil) {
+        file = fil;
+        rank = ran;
     }
     /**
      * Determines if the given object is identical to itself

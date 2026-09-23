@@ -17,6 +17,18 @@ public class ChessBoard {
     public ChessBoard() {
         
     }
+
+    public ChessBoard(ChessBoard copy) {
+        for (int i = 1; i <= 8; i++) {
+            for (int g = 1; g <= 8; g++) {
+                if (copy.getPiece(new ChessPosition(i, g)) == null) {
+                    board[i-1][g-1] = null;
+                } else {
+                    board[i - 1][g - 1] = new ChessPiece(copy.getPiece(new ChessPosition(i, g)).getTeamColor(), copy.getPiece(new ChessPosition(i, g)).getPieceType());
+                }
+            }
+        }
+    }
     /**
      * Returns string representation of the chess board. Creates an 8x8 grid with cells divided by newlines and '|' characters
      */
@@ -67,6 +79,17 @@ public class ChessBoard {
     public int hashCode() {
         return Objects.hash(toString());
     }
+
+    public void executeMove(ChessMove move) {
+        ChessPiece piece = getPiece(move.getStartPosition());
+        clearPosition(move.getStartPosition());
+        if (move.getPromotionPiece() == null) {
+            addPiece(move.getEndPosition(), piece);
+        } else {
+            addPiece(move.getEndPosition(), new ChessPiece(piece.getTeamColor(), move.getPromotionPiece()));
+        }
+    }
+
     /**
      * Adds a chess piece to the chessboard
      *
@@ -75,6 +98,10 @@ public class ChessBoard {
      */
     public void addPiece(ChessPosition position, ChessPiece piece) {
         board[position.getRank() - 1][position.getFile() - 1] = piece;
+    }
+
+    private void clearPosition(ChessPosition position) {
+        board[position.getRank() - 1][position.getFile() - 1] = null;
     }
 
     /**

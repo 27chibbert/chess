@@ -1,6 +1,8 @@
 package chess;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -79,6 +81,7 @@ public class ChessGame {
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
         ChessPiece piece = board.getPiece(startPosition);
         Collection<ChessMove> moves = piece.pieceMoves(board, startPosition);
+        moves = RulesEngine.filterValidMoves(moves, board);
         return moves;
     }
 
@@ -90,8 +93,15 @@ public class ChessGame {
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
         ChessPiece piece = board.getPiece(move.getStartPosition());
-        board.addPiece(move.getEndPosition(), piece);
-        board.addPiece(move.getStartPosition(), null);
+        if (piece == null) throw new InvalidMoveException("Attempted a move beginning on an empty space");
+        if (board.getPiece(move.getStartPosition()).getTeamColor() != turn) throw new InvalidMoveException("Attempted to move opposite colored piece");
+        if (!RulesEngine.filterValidMoves(piece.pieceMoves(board, move.getStartPosition()), board).contains(move)) throw new InvalidMoveException("Attempted illegal move");
+        board.executeMove(move);
+        if (turn == TeamColor.WHITE) {
+            setTeamTurn(TeamColor.BLACK);
+        } else {
+            setTeamTurn(TeamColor.WHITE);
+        }
     }
 
     /**
@@ -101,7 +111,11 @@ public class ChessGame {
      * @return True if the specified team is in check
      */
     public boolean isInCheck(TeamColor teamColor) {
-        return false;
+        if (RulesEngine.confirmCheck(board, teamColor)) {
+            return true;
+        } else {
+            return false;
+        }
         //throw new RuntimeException("Not implemented");
     }
 
@@ -112,7 +126,11 @@ public class ChessGame {
      * @return True if the specified team is in checkmate
      */
     public boolean isInCheckmate(TeamColor teamColor) {
-        return false;
+        if (RulesEngine.confirmCheckmate(board, teamColor)) {
+            return true;
+        } else {
+            return false;
+        }
         //throw new RuntimeException("Not implemented");
     }
 
@@ -124,7 +142,8 @@ public class ChessGame {
      * @return True if the specified team is in stalemate, otherwise false
      */
     public boolean isInStalemate(TeamColor teamColor) {
-        return false;
+        if (isInCheck(teamColor)) return false;
+        return RulesEngine.confirmStalemate(board, teamColor);
         //throw new RuntimeException("Not implemented");
     }
 

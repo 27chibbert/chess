@@ -1,5 +1,7 @@
 package chess;
 
+import com.sun.jdi.OpaqueFrameException;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -98,7 +100,15 @@ public class ChessGame {
         if (piece == null) throw new InvalidMoveException("Attempted a move beginning on an empty space");
         if (board.getPiece(move.getStartPosition()).getTeamColor() != turn) throw new InvalidMoveException("Attempted to move opposite colored piece");
         if (!RulesEngine.filterValidMoves(piece.pieceMoves(board, move.getStartPosition()), board, flags).contains(move)) throw new InvalidMoveException("Attempted illegal move");
+        if (piece.getPieceType() == ChessPiece.PieceType.PAWN && move.getStartPosition().getFile() != move.getEndPosition().getFile() && board.getPiece(move.getEndPosition()) == null) {
+            board.clearPosition(flags.getEnPassantCapturable());
+        }
         board.executeMove(move);
+        if (piece.getPieceType() == ChessPiece.PieceType.PAWN && ((move.getStartPosition().getRank() == 2 && move.getEndPosition().getRank() == 4) || (move.getStartPosition().getRank() == 7 && move.getEndPosition().getRank() == 5))) {
+            flags.setEnPassantCapturable(move.getEndPosition());
+        } else {
+            flags.setEnPassantCapturable(null);
+        }
         if (piece.getPieceType() == ChessPiece.PieceType.KING && move.getStartPosition().getFile() == 5 && (move.getEndPosition().getFile() == 3 || move.getEndPosition().getFile() == 7)) {
             if (turn == TeamColor.WHITE) {
                 if (move.getEndPosition().getFile() == 7) {

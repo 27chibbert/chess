@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
+import static chess.ChessGame.TeamColor.BLACK;
 import static chess.ChessGame.TeamColor.WHITE;
 
 /**
@@ -486,6 +487,41 @@ public class ChessPiece {
             check++;
             file = startingFile;
             rank = startingRank;
+        }
+        if (color == WHITE) {
+            if (rank == 5) {
+                if (file + 1 <= 8) {
+                    if (board.getPiece(new ChessPosition(rank, file + 1)) != null && board.getPiece(new ChessPosition(rank + 1, file + 1)) == null) {
+                        if (board.getPiece(new ChessPosition(rank, file + 1)).getTeamColor() == BLACK) {
+                            moves.add(new ChessMove(myPosition, new ChessPosition(rank + 1, file + 1), null));
+                        }
+                    }
+                }
+                if (file - 1 >= 1) {
+                    if (board.getPiece(new ChessPosition(rank, file - 1)) != null && board.getPiece(new ChessPosition(rank + 1, file - 1)) == null) {
+                        if (board.getPiece(new ChessPosition(rank, file - 1)).getTeamColor() == BLACK) {
+                            moves.add(new ChessMove(myPosition, new ChessPosition(rank + 1, file - 1), null));
+                        }
+                    }
+                }
+            }
+        } else {
+            if (rank == 4) {
+                if (file + 1 <= 8) {
+                    if (board.getPiece(new ChessPosition(rank, file + 1)) != null && board.getPiece(new ChessPosition(rank - 1, file + 1)) == null) {
+                        if (board.getPiece(new ChessPosition(rank, file + 1)).getTeamColor() == WHITE) {
+                            moves.add(new ChessMove(myPosition, new ChessPosition(rank - 1, file + 1), null));
+                        }
+                    }
+                }
+                if (file - 1 >= 1) {
+                    if (board.getPiece(new ChessPosition(rank, file - 1)) != null && board.getPiece(new ChessPosition(rank - 1, file - 1)) == null) {
+                        if (board.getPiece(new ChessPosition(rank, file - 1)).getTeamColor() == WHITE) {
+                            moves.add(new ChessMove(myPosition, new ChessPosition(rank - 1, file - 1), null));
+                        }
+                    }
+                }
+            }
         }
     }
 }

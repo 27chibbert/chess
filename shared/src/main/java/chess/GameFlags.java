@@ -5,6 +5,8 @@ public class GameFlags {
     private boolean whiteACastle;
     private boolean blackHCastle;
     private boolean whiteHCastle;
+    private ChessPosition enPassantCapturable;
+
 
     public enum GameFlag {WhiteA, WhiteH, BlackA, BlackH};
 
@@ -13,6 +15,7 @@ public class GameFlags {
         blackHCastle = true;
         whiteACastle = true;
         whiteHCastle = true;
+        enPassantCapturable = null;
     }
 
     public void dropFlag(GameFlag flag) {
@@ -39,5 +42,11 @@ public class GameFlags {
             }
         }
         return false;
+    }
+    public void setEnPassantCapturable(ChessPosition position) {
+        enPassantCapturable = position;
+    }
+    public ChessPosition getEnPassantCapturable() {
+        return enPassantCapturable;
     }
 }

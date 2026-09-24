@@ -54,13 +54,22 @@ public class RulesEngine {
             ChessGame.TeamColor color = piece.getTeamColor();
             tempBoard.executeMove(move);
             if (!confirmCheck(tempBoard, color)) {
-                if (!(piece.getPieceType() == ChessPiece.PieceType.KING && move.getStartPosition().getFile() == 5 && (move.getEndPosition().getFile() == 3 || move.getEndPosition().getFile() == 7))) {
-                    validMoves.add(move);
-                } else {
-                    //System.out.println("Trying to validate move " + move.toString() + "\n" + board.toString());
+                if (piece.getPieceType() == ChessPiece.PieceType.KING && move.getStartPosition().getFile() == 5 && (move.getEndPosition().getFile() == 3 || move.getEndPosition().getFile() == 7)) {
                     if (castlingChecks(move, board, color, flags)) {
                         validMoves.add(move);
                     }
+                } else if (piece.getPieceType() == ChessPiece.PieceType.PAWN && move.getStartPosition().getFile() != move.getEndPosition().getFile() && board.getPiece(move.getEndPosition()) == null) {
+                    if (flags.getEnPassantCapturable() != null) {
+                        //System.out.println("Checked enpassant move " + move.toString() + " with capturable " + flags.getEnPassantCapturable().toString());
+                        if (board.getPiece(flags.getEnPassantCapturable()) != null) {
+                            if (board.getPiece(flags.getEnPassantCapturable()).getTeamColor() != color) {
+                                //System.out.println("Added en passant move " + move.toString());
+                                validMoves.add(move);
+                            }
+                        }
+                    }
+                } else {
+                    validMoves.add(move);
                 }
                 //System.out.println(move.toString());
             }

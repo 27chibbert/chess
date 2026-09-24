@@ -99,7 +99,7 @@ public class ChessGame {
         if (board.getPiece(move.getStartPosition()).getTeamColor() != turn) throw new InvalidMoveException("Attempted to move opposite colored piece");
         if (!RulesEngine.filterValidMoves(piece.pieceMoves(board, move.getStartPosition()), board, flags).contains(move)) throw new InvalidMoveException("Attempted illegal move");
         board.executeMove(move);
-        if (move.getPromotionPiece() == ChessPiece.PieceType.KING) {
+        if (piece.getPieceType() == ChessPiece.PieceType.KING && move.getStartPosition().getFile() == 5 && (move.getEndPosition().getFile() == 3 || move.getEndPosition().getFile() == 7)) {
             if (turn == TeamColor.WHITE) {
                 if (move.getEndPosition().getFile() == 7) {
                     board.executeMove(new ChessMove(new ChessPosition(1, 8), new ChessPosition(1, 6), null));

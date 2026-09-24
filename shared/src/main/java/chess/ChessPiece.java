@@ -172,8 +172,9 @@ public class ChessPiece {
             rank = startingRank;
         }
         if (myPosition.getFile() == 5 && (myPosition.getRank() == 1 || myPosition.getRank() == 8)) {
-            moves.add(new ChessMove(myPosition, new ChessPosition(myPosition.getRank(), 3), PieceType.KING));
-            moves.add(new ChessMove(myPosition, new ChessPosition(myPosition.getRank(), 7), PieceType.KING));
+            //System.out.println("Adding move " + new ChessMove(myPosition, new ChessPosition(myPosition.getRank(), 3), null).toString() + " and " + new ChessMove(myPosition, new ChessPosition(myPosition.getRank(), 7), null).toString());
+            moves.add(new ChessMove(myPosition, new ChessPosition(myPosition.getRank(), 3), null));
+            moves.add(new ChessMove(myPosition, new ChessPosition(myPosition.getRank(), 7), null));
         }
     }
     /**

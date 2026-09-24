@@ -29,7 +29,9 @@ public class RulesEngine {
         for (ChessMove move : movesToCheck) {
             ChessBoard tempBoard = new ChessBoard(board);
             ChessPiece piece = tempBoard.getPiece(move.getStartPosition());
-            tempBoard.executeMove(move);
+            if (!(piece.getPieceType() == ChessPiece.PieceType.KING && move.getStartPosition().getFile() == 5 && (move.getEndPosition().getFile() == 3 || move.getEndPosition().getFile() == 7))) {
+                tempBoard.executeMove(move);
+            }
             if (!confirmCheck(tempBoard, color)) {
                 //System.out.println(board.toString() + " Not in checkmate");
                 return false;
@@ -52,9 +54,10 @@ public class RulesEngine {
             ChessGame.TeamColor color = piece.getTeamColor();
             tempBoard.executeMove(move);
             if (!confirmCheck(tempBoard, color)) {
-                if (move.getPromotionPiece() != ChessPiece.PieceType.KING) {
+                if (!(piece.getPieceType() == ChessPiece.PieceType.KING && move.getStartPosition().getFile() == 5 && (move.getEndPosition().getFile() == 3 || move.getEndPosition().getFile() == 7))) {
                     validMoves.add(move);
                 } else {
+                    //System.out.println("Trying to validate move " + move.toString() + "\n" + board.toString());
                     if (castlingChecks(move, board, color, flags)) {
                         validMoves.add(move);
                     }
@@ -99,10 +102,16 @@ public class RulesEngine {
             } else if (move.getEndPosition().getFile() == 7) {
                 if (flags.getFlag(GameFlags.GameFlag.BlackH) && board.getPiece(new ChessPosition(8,6)) == null && board.getPiece(new ChessPosition(8,7)) == null){
                     ChessBoard tempBoard = new ChessBoard(board);
+                    //System.out.println("Arrived here!");
                     tempBoard.executeMove(new ChessMove(new ChessPosition(8, 5), new ChessPosition(8, 6), null));
-                    if (confirmCheck(tempBoard, color)) return false;
+                    if (confirmCheck(tempBoard, color)) {
+                        return false;
+                    }
                     tempBoard.executeMove(new ChessMove(new ChessPosition(8, 6), new ChessPosition(8, 7), null));
-                    if (confirmCheck(tempBoard, color)) return false;
+                    if (confirmCheck(tempBoard, color)) {
+                        return false;
+                    }
+                    //System.out.println("Arrived here too!");
                     return true;
                 }
             }

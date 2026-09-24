@@ -11,9 +11,9 @@ import java.util.Objects;
 public class ChessPosition {
     private int file;
     private int rank;
-    public ChessPosition(int col, int row) {
-        file = row;
-        rank = col;
+    public ChessPosition(int ran, int fil) {
+        file = fil;
+        rank = ran;
     }
     /**
      * Determines if the given object is identical to itself
@@ -40,14 +40,15 @@ public class ChessPosition {
     public String toString() {
         String str = "(-";
         switch (file) {
-            case 0 -> str += "H";
-            case 1 -> str += "G";
-            case 2 -> str += "F";
-            case 3 -> str += "E";
+            case 8 -> str += "H";
+            case 7 -> str += "G";
+            case 6 -> str += "F";
+            case 5 -> str += "E";
             case 4 -> str += "D";
-            case 5 -> str += "C";
-            case 6 -> str += "B";
-            case 7 -> str += "A";
+            case 3 -> str += "C";
+            case 2 -> str += "B";
+            case 1 -> str += "A";
+            default -> str += "!";
         }
         str = str + rank + "-)";
         return str;

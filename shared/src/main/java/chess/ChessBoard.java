@@ -100,7 +100,7 @@ public class ChessBoard {
         board[position.getRank() - 1][position.getFile() - 1] = piece;
     }
 
-    private void clearPosition(ChessPosition position) {
+    public void clearPosition(ChessPosition position) {
         board[position.getRank() - 1][position.getFile() - 1] = null;
     }
 

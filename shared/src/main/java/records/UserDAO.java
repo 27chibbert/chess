@@ -1,5 +1,5 @@
-package dataaccess;
+package records;
 
-public record UserDAO(String username, String email, String password) {
+public record UserDAO(String username, String password, String email) {
 
 }

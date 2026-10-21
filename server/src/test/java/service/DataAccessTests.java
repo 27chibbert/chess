@@ -1,9 +1,9 @@
-package classtests;
+package service;
 
 import chess.ChessGame;
 import org.junit.jupiter.api.*;
 import records.*;
-import dataaccess.MemoryDataAccess;
+import dataAccess.MemoryDataAccess;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.*;

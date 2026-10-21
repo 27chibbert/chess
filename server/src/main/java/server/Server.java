@@ -1,6 +1,7 @@
 package server;
 
 import com.google.gson.JsonSyntaxException;
+import dataaccess.AlreadyTakenException;
 import dataaccess.DataAccessException;
 import dataaccess.InvalidLoginException;
 import io.javalin.*;
@@ -153,8 +154,11 @@ public class Server {
         } catch (InvalidLoginException e) {
             unauthorized(ctx);
             return;
-        } catch (DataAccessException e) {
+        } catch (AlreadyTakenException e) {
             alreadyTaken(ctx);
+            return;
+        } catch (DataAccessException e) {
+            badRequest(ctx);
             return;
         }
         ctx.result("{}");
@@ -184,6 +188,7 @@ public class Server {
         ctx.status(403);
         ctx.result("{\"message\":\"Error: already taken\"}");
     }
+
     private void serverError(Context ctx, Exception e) {
         ctx.status(500);
         String error = "{ \"message\":\"Error:" + e.getMessage() + "\"}";

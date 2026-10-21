@@ -58,9 +58,11 @@ public class ServiceProvider {
         return db.getAllGames();
     }
 
-    public void joinToGame(String authToken, ChessGame.TeamColor color, int gameID) throws InvalidLoginException, DataAccessException {
+    public void joinToGame(String authToken, ChessGame.TeamColor color, int gameID) throws InvalidLoginException, DataAccessException, AlreadyTakenException {
         AuthDAO identity = authSession(authToken);
-        if (!db.updateGame(identity.username(), color, gameID)) throw new DataAccessException("Invalid game edit. Username already filled or game nonexistent");
+        if (color == null) throw new DataAccessException("Bad request - invalid color");
+        if (db.getGame(gameID) == null) throw new DataAccessException("Bad request - invalid gameID");
+        if (!db.updateGame(identity.username(), color, gameID)) throw new AlreadyTakenException("Invalid game edit. Username already filled");
     }
 
     public void clear() {

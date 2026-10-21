@@ -15,14 +15,11 @@ public class RulesEngine {
             opColor = ChessGame.TeamColor.BLACK;
         }
         Collection<ChessMove> possibleMoves = getAllMoves(board, opColor);
-        //System.out.println(board.toString());
         for (ChessMove move : possibleMoves) {
             if (move.getEndPosition().equals(kingPosition)) {
-                //System.out.println("In check!");
                 return true;
             }
         }
-        //System.out.println("Not in Check");
         return false;
     }
 
@@ -36,11 +33,9 @@ public class RulesEngine {
                 tempBoard.executeMove(move);
             }
             if (!confirmCheck(tempBoard, color)) {
-                //System.out.println(board.toString() + " Not in checkmate");
                 return false;
             }
         }
-        //System.out.println(board.toString() + "Checkmate!");
         return true;
     }
 
@@ -62,15 +57,12 @@ public class RulesEngine {
                     if (castlingChecks(move, board, color, flags)) {
                         validMoves.add(move);
                     }
-                } else if (piece.getPieceType() == ChessPiece.PieceType.PAWN &&
-                        move.getStartPosition().getFile() != move.getEndPosition().getFile() &&
-                        board.getPiece(move.getEndPosition()) == null) {
-                    if (flags.getEnPassantCapturable() != null) {
-                        if (board.getPiece(flags.getEnPassantCapturable()) != null) {
-                            if (board.getPiece(flags.getEnPassantCapturable()).getTeamColor() != color) {
-                                validMoves.add(move);
-                            }
-                        }
+                } else if ((piece.getPieceType() == ChessPiece.PieceType.PAWN) &&
+                        (move.getStartPosition().getFile() != move.getEndPosition().getFile()) &&
+                        (board.getPiece(move.getEndPosition()) == null)) {
+                    if ((flags.getEnPassantCapturable() != null) && (board.getPiece(flags.getEnPassantCapturable()) != null) &&
+                            (board.getPiece(flags.getEnPassantCapturable()).getTeamColor() != color)) {
+                        validMoves.add(move);
                     }
                 } else {
                     validMoves.add(move);

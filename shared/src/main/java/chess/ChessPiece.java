@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-
 import static chess.ChessGame.TeamColor.BLACK;
 import static chess.ChessGame.TeamColor.WHITE;
 
@@ -57,11 +56,6 @@ public class ChessPiece {
         return Objects.hash(toString());
     }
 
-    /**
-     * Determines if the given object is identical to itself
-     * @param o   the reference object with which to compare.
-     * @return true or false depending on answer
-     */
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -455,28 +449,24 @@ public class ChessPiece {
             if (file <= 8 && file >= 1 && rank >= 1 && rank <= 8) {
                 ChessPiece space = board.getPiece(new ChessPosition(rank, file));
                 ChessMove newMove = new ChessMove(myPosition, new ChessPosition(rank, file), null);
-                if (space == null) {
-                    if (check == 0) {
-                        if (rank == 1 || rank == 8) {
-                            moves.add(new ChessMove(myPosition, new ChessPosition(rank, file), PieceType.QUEEN));
-                            moves.add(new ChessMove(myPosition, new ChessPosition(rank, file), PieceType.KNIGHT));
-                            moves.add(new ChessMove(myPosition, new ChessPosition(rank, file), PieceType.BISHOP));
-                            moves.add(new ChessMove(myPosition, new ChessPosition(rank, file), PieceType.ROOK));
-                        } else {
-                            moves.add(newMove);
-                        }
-                    } else if (check == 1) {
-                        if (getTeamColor() == ChessGame.TeamColor.WHITE) {
-                            if (startingRank == 2 && board.getPiece(new ChessPosition(rank - 1, file)) == null) {
-                                moves.add(newMove);
-                            }
-                        } else {
-                            if (startingRank == 7 && board.getPiece(new ChessPosition(rank + 1, file)) == null) {
-                                moves.add(newMove);
-                            }
-                        }
+                if ((space == null) && (check == 0)) {
+                    if (rank == 1 || rank == 8) {
+                        moves.add(new ChessMove(myPosition, new ChessPosition(rank, file), PieceType.QUEEN));
+                        moves.add(new ChessMove(myPosition, new ChessPosition(rank, file), PieceType.KNIGHT));
+                        moves.add(new ChessMove(myPosition, new ChessPosition(rank, file), PieceType.BISHOP));
+                        moves.add(new ChessMove(myPosition, new ChessPosition(rank, file), PieceType.ROOK));
+                    } else {
+                        moves.add(newMove);
                     }
-                } else if (space.getTeamColor() != getTeamColor() && (check == 2 || check == 3)) {
+                } else if ((space == null) && (check == 1)) {
+                    if ((getTeamColor() == ChessGame.TeamColor.WHITE) && (startingRank == 2) &&
+                            (board.getPiece(new ChessPosition(rank - 1, file)) == null)) {
+                        moves.add(newMove);
+                    } else if ((getTeamColor() == ChessGame.TeamColor.BLACK) && (startingRank == 7) &&
+                            (board.getPiece(new ChessPosition(rank + 1, file)) == null)) {
+                        moves.add(newMove);
+                    }
+                } else if ((space != null) && (space.getTeamColor() != getTeamColor()) && (check == 2 || check == 3)) {
                     if (rank == 1 || rank == 8) {
                         moves.add(new ChessMove(myPosition, new ChessPosition(rank, file), PieceType.QUEEN));
                         moves.add(new ChessMove(myPosition, new ChessPosition(rank, file), PieceType.KNIGHT));
@@ -492,38 +482,24 @@ public class ChessPiece {
             rank = startingRank;
         }
         if (color == WHITE) {
-            if (rank == 5) {
-                if (file + 1 <= 8) {
-                    if (board.getPiece(new ChessPosition(rank, file + 1)) != null && board.getPiece(new ChessPosition(rank + 1, file + 1)) == null) {
-                        if (board.getPiece(new ChessPosition(rank, file + 1)).getTeamColor() == BLACK) {
-                            moves.add(new ChessMove(myPosition, new ChessPosition(rank + 1, file + 1), null));
-                        }
-                    }
-                }
-                if (file - 1 >= 1) {
-                    if (board.getPiece(new ChessPosition(rank, file - 1)) != null && board.getPiece(new ChessPosition(rank + 1, file - 1)) == null) {
-                        if (board.getPiece(new ChessPosition(rank, file - 1)).getTeamColor() == BLACK) {
-                            moves.add(new ChessMove(myPosition, new ChessPosition(rank + 1, file - 1), null));
-                        }
-                    }
-                }
+            if ((rank == 5) && (file + 1 <= 8) && (board.getPiece(new ChessPosition(rank + 1, file + 1)) == null) &&
+                    (board.getPiece(new ChessPosition(rank, file + 1)) != null) &&
+                    (board.getPiece(new ChessPosition(rank, file + 1)).getTeamColor() == BLACK)) {
+                moves.add(new ChessMove(myPosition, new ChessPosition(rank + 1, file + 1), null));
+            } else if ((rank == 5) && (file - 1 >= 1) && (board.getPiece(new ChessPosition(rank, file - 1)) != null) &&
+                    (board.getPiece(new ChessPosition(rank + 1, file - 1)) == null) &&
+                    (board.getPiece(new ChessPosition(rank, file - 1)).getTeamColor() == BLACK)) {
+                moves.add(new ChessMove(myPosition, new ChessPosition(rank + 1, file - 1), null));
             }
         } else {
-            if (rank == 4) {
-                if (file + 1 <= 8) {
-                    if (board.getPiece(new ChessPosition(rank, file + 1)) != null && board.getPiece(new ChessPosition(rank - 1, file + 1)) == null) {
-                        if (board.getPiece(new ChessPosition(rank, file + 1)).getTeamColor() == WHITE) {
-                            moves.add(new ChessMove(myPosition, new ChessPosition(rank - 1, file + 1), null));
-                        }
-                    }
-                }
-                if (file - 1 >= 1) {
-                    if (board.getPiece(new ChessPosition(rank, file - 1)) != null && board.getPiece(new ChessPosition(rank - 1, file - 1)) == null) {
-                        if (board.getPiece(new ChessPosition(rank, file - 1)).getTeamColor() == WHITE) {
-                            moves.add(new ChessMove(myPosition, new ChessPosition(rank - 1, file - 1), null));
-                        }
-                    }
-                }
+            if ((rank == 4) && (file + 1 <= 8) && (board.getPiece(new ChessPosition(rank, file + 1)) != null) &&
+                    (board.getPiece(new ChessPosition(rank - 1, file + 1)) == null) &&
+                    (board.getPiece(new ChessPosition(rank, file + 1)).getTeamColor() == WHITE)) {
+                moves.add(new ChessMove(myPosition, new ChessPosition(rank - 1, file + 1), null));
+            } else if ((rank == 4) && (file - 1 >= 1) && (board.getPiece(new ChessPosition(rank, file - 1)) != null) &&
+                    (board.getPiece(new ChessPosition(rank - 1, file - 1)) == null) &&
+                    (board.getPiece(new ChessPosition(rank, file - 1)).getTeamColor() == WHITE)) {
+                moves.add(new ChessMove(myPosition, new ChessPosition(rank - 1, file - 1), null));
             }
         }
     }

@@ -1,9 +1,9 @@
 package server;
 
 import com.google.gson.JsonSyntaxException;
-import dataaccess.AlreadyTakenException;
-import dataaccess.DataAccessException;
-import dataaccess.InvalidLoginException;
+import dataAccess.AlreadyTakenException;
+import dataAccess.DataAccessException;
+import dataAccess.InvalidLoginException;
 import io.javalin.*;
 import io.javalin.http.Context;
 import com.google.gson.Gson;

@@ -28,7 +28,7 @@ public class Server {
         javalin.post("/game", ctx -> postGame(ctx));
         javalin.delete("/db", ctx -> deleteDb(ctx));
         javalin.delete("/session", ctx -> deleteSession(ctx));
-        javalin.put("/game", ctx -> ctx.result("{}"));
+        javalin.put("/game", ctx -> putGame(ctx));
         javalin.get("/game", ctx -> getGame(ctx));
         //
     }
@@ -139,6 +139,27 @@ public class Server {
         ctx.result(response);
     }
 
+    private void putGame(Context ctx) {
+        String authToken = ctx.header("authorization");
+        GameJoin gameJoin;
+        try {
+            gameJoin = serializer.fromJson(ctx.body(), GameJoin.class);
+        } catch (JsonSyntaxException e) {
+            badRequest(ctx);
+            return;
+        }
+        try {
+            service.joinToGame(authToken, gameJoin.playerColor(), gameJoin.gameID());
+        } catch (InvalidLoginException e) {
+            unauthorized(ctx);
+            return;
+        } catch (DataAccessException e) {
+            alreadyTaken(ctx);
+            return;
+        }
+        ctx.result("{}");
+    }
+
     private void deleteDb(Context ctx) {
         try {
             service.clear();
@@ -159,6 +180,10 @@ public class Server {
         ctx.result("{\"message\":\"Error: unauthorized\"}");
     }
 
+    private void alreadyTaken(Context ctx) {
+        ctx.status(403);
+        ctx.result("{\"message\":\"Error: already taken\"}");
+    }
     private void serverError(Context ctx, Exception e) {
         ctx.status(500);
         String error = "{ \"message\":\"Error:" + e.getMessage() + "\"}";

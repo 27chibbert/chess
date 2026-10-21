@@ -1,9 +1,9 @@
 package server;
 
 import com.google.gson.JsonSyntaxException;
-import dataAccess.AlreadyTakenException;
-import dataAccess.DataAccessException;
-import dataAccess.InvalidLoginException;
+import dataaccess.AlreadyTakenException;
+import dataaccess.DataAccessException;
+import dataaccess.InvalidLoginException;
 import io.javalin.*;
 import io.javalin.http.Context;
 import com.google.gson.Gson;
@@ -38,7 +38,9 @@ public class Server {
         UserDAO userData;
         try {
             userData = serializer.fromJson(ctx.body(), UserDAO.class);
-            if (userData.username() == null || userData.password() == null || userData.email() == null) throw new JsonSyntaxException("No null");
+            if (userData.username() == null || userData.password() == null || userData.email() == null)  {
+                throw new JsonSyntaxException("No null");
+            }
         } catch (JsonSyntaxException e) {
             badRequest(ctx);
             return;
@@ -61,7 +63,9 @@ public class Server {
         UserLogin login;
         try {
             login = serializer.fromJson(ctx.body(), UserLogin.class);
-            if (login.password() == null || login.username() == null) throw new JsonSyntaxException("No null");
+            if (login.password() == null || login.username() == null) {
+                throw new JsonSyntaxException("No null");
+            }
         } catch (JsonSyntaxException e) {
             badRequest(ctx);
             return;

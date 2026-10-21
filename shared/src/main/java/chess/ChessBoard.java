@@ -24,7 +24,8 @@ public class ChessBoard {
                 if (copy.getPiece(new ChessPosition(i, g)) == null) {
                     board[i-1][g-1] = null;
                 } else {
-                    board[i - 1][g - 1] = new ChessPiece(copy.getPiece(new ChessPosition(i, g)).getTeamColor(), copy.getPiece(new ChessPosition(i, g)).getPieceType());
+                    board[i - 1][g - 1] = new ChessPiece(copy.getPiece(new ChessPosition(i, g)).getTeamColor(),
+                            copy.getPiece(new ChessPosition(i, g)).getPieceType());
                 }
             }
         }
@@ -67,8 +68,12 @@ public class ChessBoard {
      * @return true or false depending on answer
      */
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o.getClass() != getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o.getClass() != getClass()) {
+            return false;
+        }
         ChessBoard obj = (ChessBoard) o;
         return toString().equals(obj.toString());
     }

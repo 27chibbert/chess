@@ -45,8 +45,12 @@ public class ChessGame {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (getClass() != o.getClass()) {
+            return false;
+        }
         ChessGame obj = (ChessGame) o;
         return toString().equals(obj.toString());
     }
@@ -97,19 +101,31 @@ public class ChessGame {
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
         ChessPiece piece = board.getPiece(move.getStartPosition());
-        if (piece == null) throw new InvalidMoveException("Attempted a move beginning on an empty space");
-        if (board.getPiece(move.getStartPosition()).getTeamColor() != turn) throw new InvalidMoveException("Attempted to move opposite colored piece");
-        if (!RulesEngine.filterValidMoves(piece.pieceMoves(board, move.getStartPosition()), board, flags).contains(move)) throw new InvalidMoveException("Attempted illegal move");
-        if (piece.getPieceType() == ChessPiece.PieceType.PAWN && move.getStartPosition().getFile() != move.getEndPosition().getFile() && board.getPiece(move.getEndPosition()) == null) {
+        if (piece == null) {
+            throw new InvalidMoveException("Attempted a move beginning on an empty space");
+        }
+        if (board.getPiece(move.getStartPosition()).getTeamColor() != turn) {
+            throw new
+                    InvalidMoveException("Attempted to move opposite colored piece");
+        }
+        if (!RulesEngine.filterValidMoves(piece.pieceMoves(board, move.getStartPosition()), board, flags)
+                .contains(move)) throw new InvalidMoveException("Attempted illegal move");
+        if (piece.getPieceType() == ChessPiece.PieceType.PAWN &&
+                move.getStartPosition().getFile() != move.getEndPosition().getFile() &&
+                board.getPiece(move.getEndPosition()) == null) {
             board.clearPosition(flags.getEnPassantCapturable());
         }
         board.executeMove(move);
-        if (piece.getPieceType() == ChessPiece.PieceType.PAWN && ((move.getStartPosition().getRank() == 2 && move.getEndPosition().getRank() == 4) || (move.getStartPosition().getRank() == 7 && move.getEndPosition().getRank() == 5))) {
+        if (piece.getPieceType() == ChessPiece.PieceType.PAWN &&
+                ((move.getStartPosition().getRank() == 2 && move.getEndPosition().getRank() == 4) ||
+                        (move.getStartPosition().getRank() == 7 && move.getEndPosition().getRank() == 5))) {
             flags.setEnPassantCapturable(move.getEndPosition());
         } else {
             flags.setEnPassantCapturable(null);
         }
-        if (piece.getPieceType() == ChessPiece.PieceType.KING && move.getStartPosition().getFile() == 5 && (move.getEndPosition().getFile() == 3 || move.getEndPosition().getFile() == 7)) {
+        if (piece.getPieceType() == ChessPiece.PieceType.KING &&
+                move.getStartPosition().getFile() == 5 &&
+                (move.getEndPosition().getFile() == 3 || move.getEndPosition().getFile() == 7)) {
             if (turn == TeamColor.WHITE) {
                 if (move.getEndPosition().getFile() == 7) {
                     board.executeMove(new ChessMove(new ChessPosition(1, 8), new ChessPosition(1, 6), null));
@@ -194,7 +210,9 @@ public class ChessGame {
      * @return True if the specified team is in stalemate, otherwise false
      */
     public boolean isInStalemate(TeamColor teamColor) {
-        if (isInCheck(teamColor)) return false;
+        if (isInCheck(teamColor)) {
+            return false;
+        }
         return RulesEngine.confirmStalemate(board, teamColor, flags);
         //throw new RuntimeException("Not implemented");
     }

@@ -1,4 +1,4 @@
-package dataAccess;
+package dataaccess;
 
 import chess.ChessGame;
 import records.AuthDAO;
@@ -23,7 +23,9 @@ public class MemoryDataAccess implements DataAccess {
 
     private boolean getUser(String username) {
         for (UserDAO user : users) {
-            if ((user.username().equals(username))) return true;
+            if ((user.username().equals(username))) {
+                return true;
+            }
         }
         return false;
     }
@@ -57,7 +59,9 @@ public class MemoryDataAccess implements DataAccess {
     @Override
     public AuthDAO getSession(String authToken) {
         for (AuthDAO sess : sessions) {
-            if (authToken.equals(sess.authToken())) return sess;
+            if (authToken.equals(sess.authToken())) {
+                return sess;
+            }
         }
         return null;
     }
@@ -78,16 +82,20 @@ public class MemoryDataAccess implements DataAccess {
         int id = 1;
         for (GameDAO g : games) {
 //            if (g.gameName().equals(gameName)) return -1; - Removed because it was decided two games can have the same name
-            if (g.gameID() >= id) id = g.gameID() + 1;
+            if (g.gameID() >= id) {
+                id = g.gameID() + 1;
+            }
         }
         games.add(new GameDAO(id, null, null, gameName, new ChessGame()));
         return id;
     }
 
     @Override
-    public GameDAO getGame(int ID) {
+    public GameDAO getGame(int id) {
         for (GameDAO g : games) {
-            if (g.gameID() == ID) return g;
+            if (g.gameID() == id) {
+                return g;
+            }
         }
         return null;
     }

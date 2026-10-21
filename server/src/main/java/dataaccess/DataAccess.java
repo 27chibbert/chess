@@ -1,4 +1,4 @@
-package dataAccess;
+package dataaccess;
 import chess.ChessGame;
 import records.*;
 
@@ -10,7 +10,7 @@ public interface DataAccess {
     public AuthDAO getSession(String authToken) ;
     public boolean endSession(String authToken) ;
     public int addGame(String gameName);
-    public GameDAO getGame(int ID);
+    public GameDAO getGame(int id);
     public List<GameDAO> getAllGames() ;
     public boolean updateGame(String username, ChessGame.TeamColor color, int gameID);
     public boolean clearAll();

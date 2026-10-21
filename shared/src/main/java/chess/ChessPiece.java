@@ -64,8 +64,12 @@ public class ChessPiece {
      */
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o.getClass() != getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o.getClass() != getClass()) {
+            return false;
+        }
         ChessPiece obj = (ChessPiece) o;
         return toString().equals(obj.toString());
     }
@@ -173,7 +177,6 @@ public class ChessPiece {
             rank = startingRank;
         }
         if (myPosition.getFile() == 5 && (myPosition.getRank() == 1 || myPosition.getRank() == 8)) {
-            //System.out.println("Adding move " + new ChessMove(myPosition, new ChessPosition(myPosition.getRank(), 3), null).toString() + " and " + new ChessMove(myPosition, new ChessPosition(myPosition.getRank(), 7), null).toString());
             moves.add(new ChessMove(myPosition, new ChessPosition(myPosition.getRank(), 3), null));
             moves.add(new ChessMove(myPosition, new ChessPosition(myPosition.getRank(), 7), null));
         }

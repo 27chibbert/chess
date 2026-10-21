@@ -27,8 +27,12 @@ public class ChessMove {
      */
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o.getClass() != getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o.getClass() != getClass()) {
+            return false;
+        }
         ChessMove obj = (ChessMove) o;
         return toString().equals(obj.toString());
     }

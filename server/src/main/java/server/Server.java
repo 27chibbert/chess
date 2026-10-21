@@ -9,6 +9,7 @@ import com.google.gson.Gson;
 import records.*;
 import service.ServiceProvider;
 
+import java.util.List;
 import java.util.Map;
 
 public class Server {
@@ -28,7 +29,7 @@ public class Server {
         javalin.delete("/db", ctx -> deleteDb(ctx));
         javalin.delete("/session", ctx -> deleteSession(ctx));
         javalin.put("/game", ctx -> ctx.result("{}"));
-        javalin.get("/game", ctx -> ctx.result("{}"));
+        javalin.get("/game", ctx -> getGame(ctx));
         //
     }
 
@@ -122,6 +123,19 @@ public class Server {
             return;
         }
         String response = "{\"gameID\":\"" + newGameID.toString() + "\"}";
+        ctx.result(response);
+    }
+
+    private void getGame(Context ctx) {
+        String authToken = ctx.header("authorization");
+        List<GameDAO> gameList;
+        try {
+            gameList = service.listGames(authToken);
+        } catch (InvalidLoginException e) {
+            unauthorized(ctx);
+            return;
+        }
+        String response = "{\"games\":" + serializer.toJson(gameList) + "}";
         ctx.result(response);
     }
 

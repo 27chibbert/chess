@@ -230,7 +230,6 @@ public class ChessPiece {
         return moves;
     }
 
-
     /**
      * Fills List object with possible moves for a king
      * @param board ChessBoard object of current gameboard configuration

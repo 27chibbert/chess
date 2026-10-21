@@ -102,16 +102,16 @@ public class ChessPiece {
      * @return Collection of valid moves
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        final int KING_CHECK_START = 0;
-        final int KING_CHECK_END = 8;
-        final int QUEEN_CHECK_START = 0;
-        final int QUEEN_CHECK_END = 8;
-        final int BISHOP_CHECK_START = 0;
-        final int BISHOP_CHECK_END = 4;
-        final int ROOK_CHECK_START = 4;
-        final int ROOK_CHECK_END = 8;
-        final int KNIGHT_CHECK_START = 8;
-        final int KNIGHT_CHECK_END = 16;
+        final int kingCheckStart = 0;
+        final int kingCheckEnd = 8;
+        final int queenCheckStart = 0;
+        final int queenCheckEnd = 8;
+        final int bishopCheckStart = 0;
+        final int bishopCheckEnd = 4;
+        final int rookCheckStart = 4;
+        final int rookCheckEnd = 8;
+        final int knightCheckStart = 8;
+        final int knightCheckEnd = 16;
 
         List<ChessMove> moves = new ArrayList<>();
         int startingRank = myPosition.getRank();
@@ -123,26 +123,26 @@ public class ChessPiece {
         boolean shortRange = false;
         switch (getPieceType()) {
             case QUEEN -> {
-                check = QUEEN_CHECK_START;
-                checkLimit = QUEEN_CHECK_END;
+                check = queenCheckStart;
+                checkLimit = queenCheckEnd;
             }
             case BISHOP -> {
-                check = BISHOP_CHECK_START;
-                checkLimit = BISHOP_CHECK_END;
+                check = bishopCheckStart;
+                checkLimit = bishopCheckEnd;
             }
             case ROOK -> {
-                check = ROOK_CHECK_START;
-                checkLimit = ROOK_CHECK_END;
+                check = rookCheckStart;
+                checkLimit = rookCheckEnd;
             }
             case KING -> {
-                check = KING_CHECK_START;
-                checkLimit = KING_CHECK_END;
+                check = kingCheckStart;
+                checkLimit = kingCheckEnd;
                 shortRange = true;
                 castlingMoves(board, myPosition, moves);
             }
             case KNIGHT -> {
-                check = KNIGHT_CHECK_START;
-                checkLimit = KNIGHT_CHECK_END;
+                check = knightCheckStart;
+                checkLimit = knightCheckEnd;
                 shortRange = true;
             }
             case PAWN -> {

@@ -1,8 +1,8 @@
 package service;
 
 import chess.ChessGame;
-import dataAccess.DataAccessException;
-import dataAccess.InvalidLoginException;
+import dataaccess.DataAccessException;
+import dataaccess.InvalidLoginException;
 import org.junit.jupiter.api.*;
 import records.*;
 

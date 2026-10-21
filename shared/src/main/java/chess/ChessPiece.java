@@ -121,7 +121,8 @@ public class ChessPiece {
      * @param moves The List object that discovered moves will be added to
      */
     private void kingMoves(ChessBoard board, ChessPosition myPosition, List<ChessMove> moves) {
-        int startingRank = myPosition.getRank();
+        linearMoves(board, myPosition, moves);
+        /*int startingRank = myPosition.getRank();
         int startingFile = myPosition.getFile();
         int file = startingFile;
         int rank = startingRank;
@@ -169,7 +170,7 @@ public class ChessPiece {
             check++;
             file = startingFile;
             rank = startingRank;
-        }
+        } */
         if (myPosition.getFile() == 5 && (myPosition.getRank() == 1 || myPosition.getRank() == 8)) {
             moves.add(new ChessMove(myPosition, new ChessPosition(myPosition.getRank(), 3), null));
             moves.add(new ChessMove(myPosition, new ChessPosition(myPosition.getRank(), 7), null));
@@ -182,7 +183,8 @@ public class ChessPiece {
      * @param moves The List object that discovered moves will be added to
      */
     private void queenMoves(ChessBoard board, ChessPosition myPosition, List<ChessMove> moves) {
-        int startingRank = myPosition.getRank();
+        linearMoves(board, myPosition, moves);
+        /*int startingRank = myPosition.getRank();
         int startingFile = myPosition.getFile();
         int file = startingFile;
         int rank = startingRank;
@@ -239,7 +241,7 @@ public class ChessPiece {
                 file = startingFile;
                 rank = startingRank;
             }
-        }
+        }*/
     }
     /**
      * Fills List object with possible moves for a rook
@@ -248,7 +250,8 @@ public class ChessPiece {
      * @param moves The List object that discovered moves will be added to
      */
     private void rookMoves(ChessBoard board, ChessPosition myPosition, List<ChessMove> moves) {
-        int startingRank = myPosition.getRank();
+        linearMoves(board, myPosition, moves);
+        /*int startingRank = myPosition.getRank();
         int startingFile = myPosition.getFile();
         int file = startingFile;
         int rank = startingRank;
@@ -289,7 +292,7 @@ public class ChessPiece {
                 file = startingFile;
                 rank = startingRank;
             }
-        }
+        }*/
     }
     /**
      * Fills List object with possible moves for a bishop
@@ -298,7 +301,8 @@ public class ChessPiece {
      * @param moves The List object that discovered moves will be added to
      */
     private void bishopMoves(ChessBoard board, ChessPosition myPosition, List<ChessMove> moves) {
-        int startingRank = myPosition.getRank();
+        linearMoves(board, myPosition, moves);
+        /*int startingRank = myPosition.getRank();
         int startingFile = myPosition.getFile();
         int file = startingFile;
         int rank = startingRank;
@@ -343,7 +347,7 @@ public class ChessPiece {
                 file = startingFile;
                 rank = startingRank;
             }
-        }
+        }*/
     }
     /**
      * Fills List object with possible moves for a knight
@@ -352,7 +356,8 @@ public class ChessPiece {
      * @param moves The List object that discovered moves will be added to
      */
     private void knightMoves(ChessBoard board, ChessPosition myPosition, List<ChessMove> moves) {
-        int startingRank = myPosition.getRank();
+        linearMoves(board, myPosition, moves);
+        /*int startingRank = myPosition.getRank();
         int startingFile = myPosition.getFile();
         int file = startingFile;
         int rank = startingRank;
@@ -404,7 +409,7 @@ public class ChessPiece {
             check++;
             file = startingFile;
             rank = startingRank;
-        }
+        }*/
     }
     /**
      * Fills List object with possible moves for a pawn
@@ -500,6 +505,121 @@ public class ChessPiece {
                     (board.getPiece(new ChessPosition(rank - 1, file - 1)) == null) &&
                     (board.getPiece(new ChessPosition(rank, file - 1)).getTeamColor() == WHITE)) {
                 moves.add(new ChessMove(myPosition, new ChessPosition(rank - 1, file - 1), null));
+            }
+        }
+    }
+
+    private void linearMoves(ChessBoard board, ChessPosition myPosition, List<ChessMove> moves) {
+        int startingRank = myPosition.getRank();
+        int startingFile = myPosition.getFile();
+        int file = startingFile;
+        int rank = startingRank;
+        int check, checkLimit;
+        boolean shortRange = false;
+        if (getPieceType() == PieceType.QUEEN) {
+            check = 0;
+            checkLimit = 8;
+        } else if (getPieceType() == PieceType.BISHOP) {
+            check = 0;
+            checkLimit = 4;
+        } else if (getPieceType() == PieceType.ROOK) {
+            check = 4;
+            checkLimit = 8;
+        } else if (getPieceType() == PieceType.KING) {
+            check = 0;
+            checkLimit = 8;
+            shortRange = true;
+        } else if (getPieceType() == PieceType.KNIGHT) {
+            check = 8;
+            checkLimit = 16;
+            shortRange = true;
+        } else {
+            check = 0;
+            checkLimit = 0;
+        }
+        boolean flag = false;
+        while (check < checkLimit) {
+            switch (check) {
+                case 0 -> {
+                    file++;
+                    rank++;
+                }
+                case 1 -> {
+                    file++;
+                    rank--;
+                }
+                case 2 -> {
+                    file--;
+                    rank--;
+                }
+                case 3 -> {
+                    file--;
+                    rank++;
+                }
+                case 4 -> {
+                    file++;
+                }
+                case 5 -> {
+                    rank--;
+                }
+                case 6 -> {
+                    file--;
+                }
+                case 7 -> {
+                    rank++;
+                }
+                case 8 -> {
+                    file++;
+                    rank += 2;
+                }
+                case 9 -> {
+                    file++;
+                    rank -= 2;
+                }
+                case 10 -> {
+                    file--;
+                    rank += 2;
+                }
+                case 11 -> {
+                    file--;
+                    rank -= 2;
+                }
+                case 12 -> {
+                    rank++;
+                    file += 2;
+                }
+                case 13 -> {
+                    rank++;
+                    file -= 2;
+                }
+                case 14 -> {
+                    rank--;
+                    file += 2;
+                }
+                case 15 -> {
+                    rank--;
+                    file -= 2;
+                }
+            }
+            if (file <= 8 && file >= 1 && rank >= 1 && rank <= 8) {
+                ChessPiece space = board.getPiece(new ChessPosition(rank, file));
+                ChessMove newMove = new ChessMove(myPosition, new ChessPosition(rank, file), null);
+                if (space == null) {
+                    moves.add(newMove);
+                } else if (space.getTeamColor() != getTeamColor()) {
+                    moves.add(newMove);
+                    flag = true;
+                } else {
+                    flag = true;
+                }
+            } else {
+                flag = true;
+            }
+            if (flag || shortRange) {
+                flag = false;
+                check++;
+                file = startingFile;
+                rank = startingRank;
             }
         }
     }

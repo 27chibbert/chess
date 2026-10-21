@@ -109,7 +109,9 @@ public class ChessGame {
                     InvalidMoveException("Attempted to move opposite colored piece");
         }
         if (!RulesEngine.filterValidMoves(piece.pieceMoves(board, move.getStartPosition()), board, flags)
-                .contains(move)) throw new InvalidMoveException("Attempted illegal move");
+                .contains(move)) {
+            throw new InvalidMoveException("Attempted illegal move");
+        }
         if (piece.getPieceType() == ChessPiece.PieceType.PAWN &&
                 move.getStartPosition().getFile() != move.getEndPosition().getFile() &&
                 board.getPiece(move.getEndPosition()) == null) {

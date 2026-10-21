@@ -39,9 +39,9 @@ public class DataAccessTests {
         gameNames.add("Game1");
         gameNames.add("Game2");
         gameNames.add("Game3");
-        fullGames.add(new GameDAO(0, null, null, "Game1", new ChessGame()));
-        fullGames.add(new GameDAO(1, null, null, "Game2", new ChessGame()));
-        fullGames.add(new GameDAO(2, null, null, "Game3", new ChessGame()));
+        fullGames.add(new GameDAO(1, null, null, "Game1", new ChessGame()));
+        fullGames.add(new GameDAO(2, null, null, "Game2", new ChessGame()));
+        fullGames.add(new GameDAO(3, null, null, "Game3", new ChessGame()));
         fakeGames.add(new GameDAO(4, null, null, "Cheat1", new ChessGame()));
         fakeGames.add(new GameDAO(347592836, null, null, "Cheat2", new ChessGame()));
         fakeGames.add(new GameDAO(-1, null, null, "Cheat3", new ChessGame()));
@@ -101,8 +101,8 @@ public class DataAccessTests {
     public void addGetGames() {
         prepareDataAccess();
         for (String name : gameNames) {
-            int id = testDatabase.addGame(name);
-            assertNotEquals(-1, id);
+            testDatabase.addGame(name);
+            //assertNotEquals(-1, id); - Test removed because it was decided that two games CAN have the same name
         }
         for (GameDAO game : fullGames) {
             assertEquals(testDatabase.getGame(game.gameID()).toString(), game.toString());
@@ -125,10 +125,10 @@ public class DataAccessTests {
     @DisplayName("Edit Games")
     public void editGames() {
         addGetGames();
-        GameDAO editedGame = new GameDAO(0, "White", "Black", "Game1", new ChessGame());
-        assertTrue(testDatabase.updateGame("White", ChessGame.TeamColor.WHITE, 0));
-        assertTrue(testDatabase.updateGame("Black", ChessGame.TeamColor.BLACK, 0));
-        assertEquals(editedGame.toString(), testDatabase.getGame(0).toString());
+        GameDAO editedGame = new GameDAO(1, "White", "Black", "Game1", new ChessGame());
+        assertTrue(testDatabase.updateGame("White", ChessGame.TeamColor.WHITE, 1));
+        assertTrue(testDatabase.updateGame("Black", ChessGame.TeamColor.BLACK, 1));
+        assertEquals(editedGame.toString(), testDatabase.getGame(1).toString());
         assertFalse(testDatabase.updateGame("Hack", ChessGame.TeamColor.WHITE, 100));
     }
 

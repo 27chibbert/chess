@@ -40,9 +40,9 @@ public class ServiceProviderTests {
         gameNames.add("Game1");
         gameNames.add("Game2");
         gameNames.add("Game3");
-        fullGames.add(new GameDAO(0, null, null, "Game1", new ChessGame()));
-        fullGames.add(new GameDAO(1, null, null, "Game2", new ChessGame()));
-        fullGames.add(new GameDAO(2, null, null, "Game3", new ChessGame()));
+        fullGames.add(new GameDAO(1, null, null, "Game1", new ChessGame()));
+        fullGames.add(new GameDAO(2, null, null, "Game2", new ChessGame()));
+        fullGames.add(new GameDAO(3, null, null, "Game3", new ChessGame()));
     }
 
     @Test
@@ -97,10 +97,7 @@ public class ServiceProviderTests {
         UserDAO user = users.getFirst();
         AuthDAO session = service.registerUser(user.username(), user.password(), user.email());
         for (String gameName : gameNames) {
-            assertNotEquals(-1, service.createGame(session.authToken(), gameName));
-        }
-        for (String gameName : gameNames) {
-            assertThrows(DataAccessException.class, () -> service.createGame(session.authToken(), gameName));
+            service.createGame(session.authToken(), gameName);
         }
         assertThrows(InvalidLoginException.class, () -> service.createGame(fakeSessions.getFirst().authToken(), gameNames.getFirst()));
     }

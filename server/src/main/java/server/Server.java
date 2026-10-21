@@ -9,6 +9,8 @@ import com.google.gson.Gson;
 import records.*;
 import service.ServiceProvider;
 
+import java.util.Map;
+
 public class Server {
 
     private final Javalin javalin;
@@ -22,9 +24,9 @@ public class Server {
         // Register your endpoints and exception handlers here - exception handlers handled in functions
         javalin.post("/user", ctx -> postUser(ctx));
         javalin.post("/session", ctx -> postSession(ctx));
-        javalin.post("/game", ctx -> ctx.result("{}"));
-        javalin.delete("/db", ctx -> ctx.result("{}"));
-        javalin.delete("/session", ctx -> ctx.result("{}"));
+        javalin.post("/game", ctx -> postGame(ctx));
+        javalin.delete("/db", ctx -> deleteDb(ctx));
+        javalin.delete("/session", ctx -> deleteSession(ctx));
         javalin.put("/game", ctx -> ctx.result("{}"));
         javalin.get("/game", ctx -> ctx.result("{}"));
         //
@@ -34,6 +36,7 @@ public class Server {
         UserDAO userData;
         try {
             userData = serializer.fromJson(ctx.body(), UserDAO.class);
+            if (userData.username() == null || userData.password() == null || userData.email() == null) throw new JsonSyntaxException("No null");
         } catch (JsonSyntaxException e) {
             badRequest(ctx);
             return;
@@ -56,6 +59,7 @@ public class Server {
         UserLogin login;
         try {
             login = serializer.fromJson(ctx.body(), UserLogin.class);
+            if (login.password() == null || login.username() == null) throw new JsonSyntaxException("No null");
         } catch (JsonSyntaxException e) {
             badRequest(ctx);
             return;
@@ -70,7 +74,65 @@ public class Server {
             serverError(ctx, e);
             return;
         }
+
         ctx.result(serializer.toJson(authData));
+    }
+
+    private void deleteSession(Context ctx) {
+        String sessionToken = ctx.header("Authorization");
+        Map<String, String> allHeaders = ctx.headerMap();
+        String body = serializer.toJson(ctx.body());
+        if (sessionToken == null) {
+            unauthorized(ctx);
+            return;
+        }
+        if (sessionToken.isBlank()) {
+            unauthorized(ctx);
+            return;
+        }
+        try {
+            service.logoutSession(sessionToken);
+        } catch (InvalidLoginException e) {
+            unauthorized(ctx);
+            return;
+        } catch (Exception e) {
+            serverError(ctx, e);
+            return;
+        }
+        ctx.result("{}");
+    }
+
+    private void postGame(Context ctx) {
+        String authToken = ctx.header("authorization");
+        GameCreation newGame;
+        try {
+            newGame = serializer.fromJson(ctx.body(), GameCreation.class);
+        } catch (JsonSyntaxException e) {
+            badRequest(ctx);
+            return;
+        }
+        Integer newGameID;
+        try {
+            newGameID = service.createGame(authToken, newGame.gameName());
+        } catch (InvalidLoginException e) {
+            unauthorized(ctx);
+            return;
+        } catch (DataAccessException e) {
+            badRequest(ctx);
+            return;
+        }
+        String response = "{\"gameID\":\"" + newGameID.toString() + "\"}";
+        ctx.result(response);
+    }
+
+    private void deleteDb(Context ctx) {
+        try {
+            service.clear();
+        } catch (Exception e) {
+            serverError(ctx, e);
+            return;
+        }
+        ctx.result("{}");
     }
 
     private void badRequest(Context ctx) {

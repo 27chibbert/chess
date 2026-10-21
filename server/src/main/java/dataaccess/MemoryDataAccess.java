@@ -75,11 +75,9 @@ public class MemoryDataAccess implements DataAccess {
 
     @Override
     public int addGame(String gameName) {
-        int id = 0;
+        int id = 1;
         for (GameDAO g : games) {
-            if (g.gameName().equals(gameName)) {
-                return -1;
-            }
+//            if (g.gameName().equals(gameName)) return -1; - Removed because it was decided two games can have the same name
             if (g.gameID() >= id) id = g.gameID() + 1;
         }
         games.add(new GameDAO(id, null, null, gameName, new ChessGame()));

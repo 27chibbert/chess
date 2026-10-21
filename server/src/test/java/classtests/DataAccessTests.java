@@ -110,7 +110,7 @@ public class DataAccessTests {
         for (GameDAO game : fakeGames) {
             assertNull(testDatabase.getGame(game.gameID()));
         }
-        assertEquals(-1, testDatabase.addGame("Game1"));
+        // assertEquals(-1, testDatabase.addGame("Game1")); - Test removed because it was decided that two games CAN have the same name
     }
 
     @Test

@@ -32,6 +32,7 @@ public class ServiceProvider {
     }
 
     private AuthDAO authSession(String authToken) throws InvalidLoginException {
+        if (authToken == null) throw new InvalidLoginException("Invalid credentials");
         AuthDAO result = db.getSession(authToken);
         if (result == null) {
             throw new InvalidLoginException("Invalid credentials");
@@ -46,8 +47,9 @@ public class ServiceProvider {
 
     public int createGame(String authToken, String gameName) throws InvalidLoginException, DataAccessException {
         authSession(authToken);
+        if (gameName == null) throw new DataAccessException("Must send game name");
         int id = db.addGame(gameName);
-        if (id == -1) throw new DataAccessException("Game name already in use");
+        // if (id == -1) throw new DataAccessException("Game name already in use"); - Removed because it was decided that two games can have the same name
         return id;
     }
 

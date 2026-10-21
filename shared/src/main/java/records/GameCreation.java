@@ -1,4 +1,4 @@
 package records;
 
-public class GameCreation {
+public record GameCreation(String gameName) {
 }

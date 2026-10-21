@@ -3,6 +3,7 @@ package service;
 import chess.ChessGame;
 import dataaccess.DataAccessException;
 import dataaccess.InvalidLoginException;
+import org.eclipse.jetty.server.Authentication;
 import org.junit.jupiter.api.*;
 import records.*;
 
@@ -27,6 +28,11 @@ public class ServiceProviderTests {
         fakeSessions = new ArrayList<>();
         gameNames = new ArrayList<>();
         fullGames = new ArrayList<>();
+        prepareLists(users, fakeUsers, fakeSessions, gameNames, fullGames);
+    }
+
+    public static void prepareLists(List<UserDAO> users, List<UserDAO> fakeUsers, List<AuthDAO> fakeSessions,
+                                    List<String> gameNames, List<GameDAO> fullGames) {
         users.add(new UserDAO("user", "email", "password"));
         users.add(new UserDAO("user2", "email2", "password2"));
         users.add(new UserDAO("3user", "3email", "3password"));
@@ -43,7 +49,6 @@ public class ServiceProviderTests {
         fullGames.add(new GameDAO(2, null, null, "Game2", new ChessGame()));
         fullGames.add(new GameDAO(3, null, null, "Game3", new ChessGame()));
     }
-
     @Test
     @DisplayName("User Registration")
     public void testUserRegistration() throws DataAccessException, InvalidLoginException {

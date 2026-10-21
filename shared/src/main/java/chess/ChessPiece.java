@@ -103,13 +103,129 @@ public class ChessPiece {
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         List<ChessMove> moves = new ArrayList<>();
+        int startingRank = myPosition.getRank();
+        int startingFile = myPosition.getFile();
+        int file = startingFile;
+        int rank = startingRank;
+        int check, checkLimit;
+        boolean shortRange = false;
         switch (getPieceType()) {
-            case PAWN -> pawnMoves(board, myPosition, moves);
-            case KNIGHT -> knightMoves(board, myPosition, moves);
-            case BISHOP -> bishopMoves(board, myPosition, moves);
-            case ROOK -> rookMoves(board, myPosition, moves);
-            case QUEEN -> queenMoves(board, myPosition, moves);
-            case KING -> kingMoves(board, myPosition, moves);
+            case QUEEN -> {
+                check = 0;
+                checkLimit = 8;
+            }
+            case BISHOP -> {
+                check = 0;
+                checkLimit = 4;
+            }
+            case ROOK -> {
+                check = 4;
+                checkLimit = 8;
+            }
+            case KING -> {
+                check = 0;
+                checkLimit = 8;
+                shortRange = true;
+                castlingMoves(board, myPosition, moves);
+            }
+            case KNIGHT -> {
+                check = 8;
+                checkLimit = 16;
+                shortRange = true;
+            }
+            case PAWN -> {
+                pawnMoves(board, myPosition, moves);
+                return moves;
+            }
+            default -> {
+                check = 0;
+                checkLimit = 0;
+            }
+        }
+        boolean flag = false;
+        while (check < checkLimit) {
+            switch (check) {
+                case 0 -> {
+                    file++;
+                    rank++;
+                }
+                case 1 -> {
+                    file++;
+                    rank--;
+                }
+                case 2 -> {
+                    file--;
+                    rank--;
+                }
+                case 3 -> {
+                    file--;
+                    rank++;
+                }
+                case 4 -> {
+                    file++;
+                }
+                case 5 -> {
+                    rank--;
+                }
+                case 6 -> {
+                    file--;
+                }
+                case 7 -> {
+                    rank++;
+                }
+                case 8 -> {
+                    file++;
+                    rank += 2;
+                }
+                case 9 -> {
+                    file++;
+                    rank -= 2;
+                }
+                case 10 -> {
+                    file--;
+                    rank += 2;
+                }
+                case 11 -> {
+                    file--;
+                    rank -= 2;
+                }
+                case 12 -> {
+                    rank++;
+                    file += 2;
+                }
+                case 13 -> {
+                    rank++;
+                    file -= 2;
+                }
+                case 14 -> {
+                    rank--;
+                    file += 2;
+                }
+                case 15 -> {
+                    rank--;
+                    file -= 2;
+                }
+            }
+            if (file <= 8 && file >= 1 && rank >= 1 && rank <= 8) {
+                ChessPiece space = board.getPiece(new ChessPosition(rank, file));
+                ChessMove newMove = new ChessMove(myPosition, new ChessPosition(rank, file), null);
+                if (space == null) {
+                    moves.add(newMove);
+                } else if (space.getTeamColor() != getTeamColor()) {
+                    moves.add(newMove);
+                    flag = true;
+                } else {
+                    flag = true;
+                }
+            } else {
+                flag = true;
+            }
+            if (flag || shortRange) {
+                flag = false;
+                check++;
+                file = startingFile;
+                rank = startingRank;
+            }
         }
         return moves;
     }
@@ -120,290 +236,10 @@ public class ChessPiece {
      * @param myPosition ChessPosition object of the current position of the piece
      * @param moves The List object that discovered moves will be added to
      */
-    private void kingMoves(ChessBoard board, ChessPosition myPosition, List<ChessMove> moves) {
-        int startingRank = myPosition.getRank();
-        int startingFile = myPosition.getFile();
-        int file = startingFile;
-        int rank = startingRank;
-        int check = 0;
-        while (check < 8) {
-            switch (check) {
-                case 0 -> {
-                    file++;
-                    rank++;
-                }
-                case 1 -> {
-                    file++;
-                    rank--;
-                }
-                case 2 -> {
-                    file--;
-                    rank--;
-                }
-                case 3 -> {
-                    file--;
-                    rank++;
-                }
-                case 4 -> {
-                    file++;
-                }
-                case 5 -> {
-                    rank--;
-                }
-                case 6 -> {
-                    file--;
-                }
-                case 7 -> {
-                    rank++;
-                }
-            }
-            if (file <= 8 && file >= 1 && rank >= 1 && rank <= 8) {
-                ChessPiece space = board.getPiece(new ChessPosition(rank, file));
-                ChessMove newMove = new ChessMove(myPosition, new ChessPosition(rank, file), null);
-                if (space == null) {
-                    moves.add(newMove);
-                } else if (space.getTeamColor() != getTeamColor()) {
-                    moves.add(newMove);
-                }
-            }
-            check++;
-            file = startingFile;
-            rank = startingRank;
-        }
+    private void castlingMoves(ChessBoard board, ChessPosition myPosition, List<ChessMove> moves) {
         if (myPosition.getFile() == 5 && (myPosition.getRank() == 1 || myPosition.getRank() == 8)) {
             moves.add(new ChessMove(myPosition, new ChessPosition(myPosition.getRank(), 3), null));
             moves.add(new ChessMove(myPosition, new ChessPosition(myPosition.getRank(), 7), null));
-        }
-    }
-    /**
-     * Fills List object with possible moves for a queen
-     * @param board ChessBoard object of current gameboard configuration
-     * @param myPosition ChessPosition object of the current position of the piece
-     * @param moves The List object that discovered moves will be added to
-     */
-    private void queenMoves(ChessBoard board, ChessPosition myPosition, List<ChessMove> moves) {
-        int startingRank = myPosition.getRank();
-        int startingFile = myPosition.getFile();
-        int file = startingFile;
-        int rank = startingRank;
-        int check = 0;
-        boolean flag = false;
-        while (check < 8) {
-            switch (check) {
-                case 0 -> {
-                    file++;
-                    rank++;
-                }
-                case 1 -> {
-                    file++;
-                    rank--;
-                }
-                case 2 -> {
-                    file--;
-                    rank--;
-                }
-                case 3 -> {
-                    file--;
-                    rank++;
-                }
-                case 4 -> {
-                    file++;
-                }
-                case 5 -> {
-                    rank--;
-                }
-                case 6 -> {
-                    file--;
-                }
-                case 7 -> {
-                    rank++;
-                }
-            }
-            if (file <= 8 && file >= 1 && rank >= 1 && rank <= 8) {
-                ChessPiece space = board.getPiece(new ChessPosition(rank, file));
-                ChessMove newMove = new ChessMove(myPosition, new ChessPosition(rank, file), null);
-                if (space == null) {
-                    moves.add(newMove);
-                } else if (space.getTeamColor() != getTeamColor()) {
-                    moves.add(newMove);
-                    flag = true;
-                } else {
-                    flag = true;
-                }
-            } else {
-                flag = true;
-            }
-            if (flag) {
-                flag = false;
-                check++;
-                file = startingFile;
-                rank = startingRank;
-            }
-        }
-    }
-    /**
-     * Fills List object with possible moves for a rook
-     * @param board ChessBoard object of current gameboard configuration
-     * @param myPosition ChessPosition object of the current position of the piece
-     * @param moves The List object that discovered moves will be added to
-     */
-    private void rookMoves(ChessBoard board, ChessPosition myPosition, List<ChessMove> moves) {
-        int startingRank = myPosition.getRank();
-        int startingFile = myPosition.getFile();
-        int file = startingFile;
-        int rank = startingRank;
-        int check = 0;
-        boolean flag = false;
-        while (check < 4) {
-            switch (check) {
-                case 0 -> {
-                    file++;
-                }
-                case 1 -> {
-                    rank--;
-                }
-                case 2 -> {
-                    file--;
-                }
-                case 3 -> {
-                    rank++;
-                }
-            }
-            if (file <= 8 && file >= 1 && rank >= 1 && rank <= 8) {
-                ChessPiece space = board.getPiece(new ChessPosition(rank, file));
-                ChessMove newMove = new ChessMove(myPosition, new ChessPosition(rank, file), null);
-                if (space == null) {
-                    moves.add(newMove);
-                } else if (space.getTeamColor() != getTeamColor()) {
-                    moves.add(newMove);
-                    flag = true;
-                } else {
-                    flag = true;
-                }
-            } else {
-                flag = true;
-            }
-            if (flag) {
-                flag = false;
-                check++;
-                file = startingFile;
-                rank = startingRank;
-            }
-        }
-    }
-    /**
-     * Fills List object with possible moves for a bishop
-     * @param board ChessBoard object of current gameboard configuration
-     * @param myPosition ChessPosition object of the current position of the piece
-     * @param moves The List object that discovered moves will be added to
-     */
-    private void bishopMoves(ChessBoard board, ChessPosition myPosition, List<ChessMove> moves) {
-        int startingRank = myPosition.getRank();
-        int startingFile = myPosition.getFile();
-        int file = startingFile;
-        int rank = startingRank;
-        int check = 0;
-        boolean flag = false;
-        while (check < 4) {
-            switch (check) {
-                case 0 -> {
-                    file++;
-                    rank++;
-                }
-                case 1 -> {
-                    file++;
-                    rank--;
-                }
-                case 2 -> {
-                    file--;
-                    rank--;
-                }
-                case 3 -> {
-                    file--;
-                    rank++;
-                }
-            }
-            if (file <= 8 && file >= 1 && rank >= 1 && rank <= 8) {
-                ChessPiece space = board.getPiece(new ChessPosition(rank, file));
-                ChessMove newMove = new ChessMove(myPosition, new ChessPosition(rank, file), null);
-                if (space == null) {
-                    moves.add(newMove);
-                } else if (space.getTeamColor() != getTeamColor()) {
-                    moves.add(newMove);
-                    flag = true;
-                } else {
-                    flag = true;
-                }
-            } else {
-                flag = true;
-            }
-            if (flag) {
-                flag = false;
-                check++;
-                file = startingFile;
-                rank = startingRank;
-            }
-        }
-    }
-    /**
-     * Fills List object with possible moves for a knight
-     * @param board ChessBoard object of current gameboard configuration
-     * @param myPosition ChessPosition object of the current position of the piece
-     * @param moves The List object that discovered moves will be added to
-     */
-    private void knightMoves(ChessBoard board, ChessPosition myPosition, List<ChessMove> moves) {
-        int startingRank = myPosition.getRank();
-        int startingFile = myPosition.getFile();
-        int file = startingFile;
-        int rank = startingRank;
-        int check = 0;
-        while (check < 8) {
-            switch (check) {
-                case 0 -> {
-                    file++;
-                    rank += 2;
-                }
-                case 1 -> {
-                    file++;
-                    rank -= 2;
-                }
-                case 2 -> {
-                    file--;
-                    rank += 2;
-                }
-                case 3 -> {
-                    file--;
-                    rank -= 2;
-                }
-                case 4 -> {
-                    rank++;
-                    file += 2;
-                }
-                case 5 -> {
-                    rank++;
-                    file -= 2;
-                }
-                case 6 -> {
-                    rank--;
-                    file += 2;
-                }
-                case 7 -> {
-                    rank--;
-                    file -= 2;
-                }
-            }
-            if (file <= 8 && file >= 1 && rank >= 1 && rank <= 8) {
-                ChessPiece space = board.getPiece(new ChessPosition(rank, file));
-                ChessMove newMove = new ChessMove(myPosition, new ChessPosition(rank, file), null);
-                if (space == null) {
-                    moves.add(newMove);
-                } else if (space.getTeamColor() != getTeamColor()) {
-                    moves.add(newMove);
-                }
-            }
-            check++;
-            file = startingFile;
-            rank = startingRank;
         }
     }
     /**

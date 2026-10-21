@@ -1,6 +1,7 @@
 package server;
 
 import com.google.gson.JsonSyntaxException;
+import dataaccess.AlreadyTakenException;
 import dataaccess.DataAccessException;
 import dataaccess.InvalidLoginException;
 import io.javalin.*;
@@ -9,6 +10,7 @@ import com.google.gson.Gson;
 import records.*;
 import service.ServiceProvider;
 
+import java.util.List;
 import java.util.Map;
 
 public class Server {
@@ -27,8 +29,8 @@ public class Server {
         javalin.post("/game", ctx -> postGame(ctx));
         javalin.delete("/db", ctx -> deleteDb(ctx));
         javalin.delete("/session", ctx -> deleteSession(ctx));
-        javalin.put("/game", ctx -> ctx.result("{}"));
-        javalin.get("/game", ctx -> ctx.result("{}"));
+        javalin.put("/game", ctx -> putGame(ctx));
+        javalin.get("/game", ctx -> getGame(ctx));
         //
     }
 
@@ -125,6 +127,43 @@ public class Server {
         ctx.result(response);
     }
 
+    private void getGame(Context ctx) {
+        String authToken = ctx.header("authorization");
+        List<GameDAO> gameList;
+        try {
+            gameList = service.listGames(authToken);
+        } catch (InvalidLoginException e) {
+            unauthorized(ctx);
+            return;
+        }
+        String response = "{\"games\":" + serializer.toJson(gameList) + "}";
+        ctx.result(response);
+    }
+
+    private void putGame(Context ctx) {
+        String authToken = ctx.header("authorization");
+        GameJoin gameJoin;
+        try {
+            gameJoin = serializer.fromJson(ctx.body(), GameJoin.class);
+        } catch (JsonSyntaxException e) {
+            badRequest(ctx);
+            return;
+        }
+        try {
+            service.joinToGame(authToken, gameJoin.playerColor(), gameJoin.gameID());
+        } catch (InvalidLoginException e) {
+            unauthorized(ctx);
+            return;
+        } catch (AlreadyTakenException e) {
+            alreadyTaken(ctx);
+            return;
+        } catch (DataAccessException e) {
+            badRequest(ctx);
+            return;
+        }
+        ctx.result("{}");
+    }
+
     private void deleteDb(Context ctx) {
         try {
             service.clear();
@@ -143,6 +182,11 @@ public class Server {
     private void unauthorized(Context ctx) {
         ctx.status(401);
         ctx.result("{\"message\":\"Error: unauthorized\"}");
+    }
+
+    private void alreadyTaken(Context ctx) {
+        ctx.status(403);
+        ctx.result("{\"message\":\"Error: already taken\"}");
     }
 
     private void serverError(Context ctx, Exception e) {

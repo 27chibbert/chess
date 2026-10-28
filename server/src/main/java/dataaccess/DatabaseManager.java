@@ -94,6 +94,17 @@ public class DatabaseManager implements DataAccess {
 
     @Override
     public boolean endSession(String authToken) {
+        try (var conn = getConnection()) {
+            try (var statement = conn.prepareStatement("DELETE FROM sessions WHERE authToken = ?")) {
+                statement.setString(1, authToken);
+                var result = statement.executeUpdate();
+                if (result > 0) {
+                    return true;
+                }
+            }
+        } catch (DataAccessException | SQLException e) {
+            return false;
+        }
         return false;
     }
 

@@ -1,9 +1,16 @@
 package dataaccess;
 
+import chess.ChessGame;
+import records.AuthDAO;
+import records.GameDAO;
+import records.UserDAO;
+import org.mindrot.jbcrypt.BCrypt;
 import java.sql.*;
+import java.util.List;
 import java.util.Properties;
+import java.util.UUID;
 
-public class DatabaseManager {
+public class DatabaseManager implements DataAccess {
     private static String databaseName;
     private static String dbUsername;
     private static String dbPassword;
@@ -14,6 +21,93 @@ public class DatabaseManager {
      */
     static {
         loadPropertiesFromResources();
+    }
+
+    @Override
+    public AuthDAO addUser(String username, String password, String email) {
+        AuthDAO session;
+        try (var conn = getConnection()) {
+            try (var query = conn.prepareStatement("SELECT * FROM users WHERE username = ?")) {
+                query.setString(1, username);
+                var result = query.executeQuery();
+                if (result.next()) {
+                    return null;
+                }
+            }
+            try (var userStatement = conn.prepareStatement("INSERT INTO users (username, password, email) VALUES (?, ? ,?)")) {
+                userStatement.setString(1, username);
+                userStatement.setString(2, BCrypt.hashpw(password, BCrypt.gensalt()));
+                userStatement.setString(3, email);
+                var result = userStatement.executeUpdate();
+                session = new AuthDAO(username, UUID.randomUUID().toString());
+                var sessionStatement = conn.prepareStatement("INSERT INTO sessions (username, authToken) VALUES (?, ?)");
+                sessionStatement.setString(1, username);
+                sessionStatement.setString(2, session.authToken());
+                sessionStatement.executeUpdate();
+                return session;
+            }
+        } catch (DataAccessException | SQLException e) {
+            return null;
+        }
+    }
+
+    @Override
+    public AuthDAO newSession(String user, String password) {
+        return null;
+    }
+
+    @Override
+    public AuthDAO getSession(String authToken) {
+        try (var conn = getConnection()) {
+            try (var query = conn.prepareStatement("SELECT * FROM sessions WHERE authToken = ?")) {
+                query.setString(1, authToken);
+                var result = query.executeQuery();
+                if (result.next()) {
+                    AuthDAO session = new AuthDAO(result.getString("username"), result.getString("authToken"));
+                    return session;
+                }
+                return null;
+            }
+        } catch (DataAccessException | SQLException e) {
+            return null;
+        }
+    }
+
+    @Override
+    public boolean endSession(String authToken) {
+        return false;
+    }
+
+    @Override
+    public int addGame(String gameName) {
+        return 0;
+    }
+
+    @Override
+    public GameDAO getGame(int id) {
+        return null;
+    }
+
+    @Override
+    public List<GameDAO> getAllGames() {
+        return List.of();
+    }
+
+    @Override
+    public boolean updateGame(String username, ChessGame.TeamColor color, int gameID) {
+        return false;
+    }
+
+    @Override
+    public boolean clearAll() {
+        try (var conn = getConnection()) {
+            try (var clearStatement = conn.prepareStatement("DELETE FROM users; DELETE FROM session; DELETE FROM games;")) {
+                var result = clearStatement.executeUpdate();
+            }
+        } catch (DataAccessException | SQLException e) {
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -74,4 +168,5 @@ public class DatabaseManager {
         var port = Integer.parseInt(props.getProperty("db.port"));
         connectionUrl = String.format("jdbc:mysql://%s:%d", host, port);
     }
+
 }

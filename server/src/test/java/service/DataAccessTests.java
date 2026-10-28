@@ -1,15 +1,17 @@
 package service;
 
 import chess.ChessGame;
+import dataaccess.DataAccess;
 import org.junit.jupiter.api.*;
 import records.*;
 import dataaccess.MemoryDataAccess;
+import dataaccess.DatabaseManager;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.*;
 
 public class DataAccessTests {
-    private static MemoryDataAccess testDatabase;
+    private static DataAccess testDatabase;
     private static List<UserDAO> users;
     private static List<UserDAO> fakeUsers;
     private static List<AuthDAO> sessions;
@@ -19,7 +21,8 @@ public class DataAccessTests {
     private static List<GameDAO> fakeGames;
 
     public static void prepareDataAccess() {
-        testDatabase = new MemoryDataAccess();
+        testDatabase = new DatabaseManager();
+        testDatabase.clearAll();
         users = new ArrayList<>();
         fakeUsers = new ArrayList<>();
         sessions = new ArrayList<>();

@@ -33,9 +33,9 @@ public class ServiceProviderTests {
 
     public static void prepareLists(List<UserDAO> users, List<UserDAO> fakeUsers, List<AuthDAO> fakeSessions,
                                     List<String> gameNames, List<GameDAO> fullGames) {
-        users.add(new UserDAO("user", "email", "password"));
-        users.add(new UserDAO("user2", "email2", "password2"));
-        users.add(new UserDAO("3user", "3email", "3password"));
+        users.add(new UserDAO("user", "password", "email"));
+        users.add(new UserDAO("user2", "password2", "email"));
+        users.add(new UserDAO("3user", "password3", "email"));
         fakeSessions.add(new AuthDAO("hacker1", UUID.randomUUID().toString()));
         fakeSessions.add(new AuthDAO("hacker2", UUID.randomUUID().toString()));
         fakeSessions.add(new AuthDAO("hacker3", UUID.randomUUID().toString()));

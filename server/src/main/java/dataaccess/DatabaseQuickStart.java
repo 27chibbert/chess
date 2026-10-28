@@ -2,7 +2,7 @@ package dataaccess;
 import java.sql.Connection;
 import java.sql.DriverManager;
 
-public class DatabaseManager {
+public class DatabaseQuickStart {
     public static void main(String[] args) {
         try (Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306", "root", "unDERgrad28")) {
             conn.setCatalog("chess");

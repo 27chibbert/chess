@@ -110,7 +110,23 @@ public class DatabaseManager implements DataAccess {
 
     @Override
     public int addGame(String gameName) {
-        return 0;
+        try (var conn = getConnection()) {
+            try (var statement = conn.prepareStatement("INSERT INTO games (gameName) VALUES (?)")) {
+                statement.setString(1, gameName);
+                statement.executeUpdate();
+            }
+            try (var query = conn.prepareStatement("SELECT id FROM games WHERE gameName = ?")) {
+                query.setString(1, gameName);
+                var result = query.executeQuery();
+                int gameID = 0;
+                while (!result.next()) {
+                    gameID = result.getInt("id");
+                }
+                return gameID;
+            }
+        } catch (DataAccessException | SQLException e) {
+            return -1;
+        }
     }
 
     @Override

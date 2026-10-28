@@ -147,10 +147,15 @@ public class DatabaseManager implements DataAccess {
     @Override
     public boolean clearAll() {
         try (var conn = getConnection()) {
-            conn.prepareStatement("DELETE FROM users;").execute();
-            conn.prepareStatement("DELETE FROM sessions;").execute();
-            conn.prepareStatement("DELETE FROM games;").execute();
+            conn.prepareStatement("DROP TABLE users;").execute();
+            conn.prepareStatement("DROP TABLE sessions;").execute();
+            conn.prepareStatement("DROP TABLE games;").execute();
         } catch (DataAccessException | SQLException e) {
+            return false;
+        }
+        try {
+            createDatabase();
+        } catch (DataAccessException e) {
             return false;
         }
         return true;
@@ -160,10 +165,34 @@ public class DatabaseManager implements DataAccess {
      * Creates the database if it does not already exist.
      */
     static public void createDatabase() throws DataAccessException {
-        var statement = "CREATE DATABASE IF NOT EXISTS " + databaseName;
+        var statement = "CREATE DATABASE IF NOT EXISTS " + databaseName +";";
+        var useStatement = "USE " + databaseName + ";";
+        var userStatement = "CREATE TABLE IF NOT EXISTS users ( " +
+                "id INT NOT NULL AUTO_INCREMENT, " +
+                "username VARCHAR(255) NOT NULL, " +
+                "password VARCHAR(255) NOT NULL, " +
+                "email VARCHAR(255), " +
+                "PRIMARY KEY (id), " +
+                "UNIQUE KEY (username) );";
+        var sessionStatement = "CREATE TABLE IF NOT EXISTS sessions (" +
+                "username VARCHAR(255) NOT NULL," +
+                "authToken VARCHAR(255) NOT NULL," +
+                "UNIQUE KEY (authToken) );";
+        var gameStatement = "CREATE TABLE IF NOT EXISTS games (" +
+                "id INT NOT NULL AUTO_INCREMENT," +
+                "whiteUsername VARCHAR(255)," +
+                "blackUsername VARCHAR(255)," +
+                "gameName VARCHAR(255) NOT NULL," +
+                "game VARCHAR(1023)," +
+                "PRIMARY KEY (id) );";
         try (var conn = DriverManager.getConnection(connectionUrl, dbUsername, dbPassword);
              var preparedStatement = conn.prepareStatement(statement)) {
             preparedStatement.executeUpdate();
+            conn.prepareStatement(useStatement).execute();
+            conn.prepareStatement(userStatement).executeUpdate();
+            conn.prepareStatement(sessionStatement).executeUpdate();
+            conn.prepareStatement(gameStatement).executeUpdate();
+
         } catch (SQLException ex) {
             throw new DataAccessException("failed to create database", ex);
         }

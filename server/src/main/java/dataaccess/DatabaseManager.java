@@ -52,8 +52,27 @@ public class DatabaseManager implements DataAccess {
     }
 
     @Override
-    public AuthDAO newSession(String user, String password) {
-        return null;
+    public AuthDAO newSession(String username, String password) {
+        AuthDAO session;
+        try (var conn = getConnection()) {
+            try (var query = conn.prepareStatement("SELECT * FROM users WHERE username = ?")) {
+                query.setString(1, username);
+                var result = query.executeQuery();
+                if (result.next() && BCrypt.checkpw(password, result.getString("password"))) {
+                    session = new AuthDAO(username, UUID.randomUUID().toString());
+                } else {
+                    return null;
+                }
+            }
+            try (var query = conn.prepareStatement("INSERT INTO sessions (username, authToken) VALUES (?, ?)")) {
+                query.setString(1, session.username());
+                query.setString(2, session.authToken());
+                query.executeUpdate();
+            }
+        } catch (DataAccessException | SQLException e) {
+            return null;
+        }
+        return session;
     }
 
     @Override
@@ -101,9 +120,9 @@ public class DatabaseManager implements DataAccess {
     @Override
     public boolean clearAll() {
         try (var conn = getConnection()) {
-            try (var clearStatement = conn.prepareStatement("DELETE FROM users; DELETE FROM session; DELETE FROM games;")) {
-                var result = clearStatement.executeUpdate();
-            }
+            conn.prepareStatement("DELETE FROM users;").execute();
+            conn.prepareStatement("DELETE FROM sessions;").execute();
+            conn.prepareStatement("DELETE FROM games;").execute();
         } catch (DataAccessException | SQLException e) {
             return false;
         }

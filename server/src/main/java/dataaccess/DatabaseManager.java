@@ -1,6 +1,8 @@
 package dataaccess;
 
 import chess.ChessGame;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import records.AuthDAO;
 import records.GameDAO;
 import records.UserDAO;
@@ -15,6 +17,7 @@ public class DatabaseManager implements DataAccess {
     private static String dbUsername;
     private static String dbPassword;
     private static String connectionUrl;
+    private static Gson serializer = new Gson();
 
     /*
      * Load the database information for the db.properties file.
@@ -119,7 +122,7 @@ public class DatabaseManager implements DataAccess {
                 query.setString(1, gameName);
                 var result = query.executeQuery();
                 int gameID = 0;
-                while (!result.next()) {
+                while (result.next()) {
                     gameID = result.getInt("id");
                 }
                 return gameID;
@@ -131,7 +134,20 @@ public class DatabaseManager implements DataAccess {
 
     @Override
     public GameDAO getGame(int id) {
-        return null;
+        try (var conn = getConnection()) {
+            try (var query = conn.prepareStatement("SELECT * FROM games WHERE id = ?")) {
+                query.setInt(1, id);
+                var result = query.executeQuery();
+                if (result.next()) {
+                    ChessGame gameState = serializer.fromJson(result.getString(5));
+                    GameDAO game = new GameDAO(result.getInt(1), result.getString(2), result.getString(3), result.getString(4), serializer.fromJson() (GameDAO));
+                } else {
+                    return null;
+                }
+            }
+        } catch (DataAccessException | SQLException e) {
+            return null;
+        }
     }
 
     @Override

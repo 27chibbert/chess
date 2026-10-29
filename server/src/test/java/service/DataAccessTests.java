@@ -90,8 +90,8 @@ public class DataAccessTests {
     public void addGetGames() {
         prepareDataAccess();
         for (String name : gameNames) {
-            testDatabase.addGame(name);
-            //assertNotEquals(-1, id); - Test removed because it was decided that two games CAN have the same name
+            int id = testDatabase.addGame(name);
+            assertNotEquals(-1, id); // -1 means a SQL error. Can't happen with memory data organization.
         }
         for (GameDAO game : fullGames) {
             assertEquals(testDatabase.getGame(game.gameID()).toString(), game.toString());

@@ -26,6 +26,7 @@ public class ChessGame {
     public String toString() {
         String str = board.toString();
         str += "\n";
+        str += flags.toString() + "\n";
         switch (turn) {
             case WHITE -> str += "White's";
             case BLACK -> str += "Black's";

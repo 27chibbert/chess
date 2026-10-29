@@ -10,6 +10,41 @@ public class GameFlags {
 
     public enum GameFlag {WhiteA, WhiteH, BlackA, BlackH};
 
+    public String toString() {
+        String str = new String();
+        str += "[White Queenside Castle: ";
+        if (whiteACastle) {
+            str += "true]\n";
+        } else {
+            str += "false]\n";
+        }
+        str += "[White Kingside Castle: ";
+        if (whiteHCastle) {
+            str += "true]\n";
+        } else {
+            str += "false]\n";
+        }
+        str += "[Black Queenside Castle: ";
+        if (blackACastle) {
+            str += "true]\n";
+        } else {
+            str += "false]\n";
+        }
+        str += "[Black Kingside Castle: ";
+        if (blackHCastle) {
+            str += "true]\n";
+        } else {
+            str += "false]\n";
+        }
+        str += "[En Passant Capturable: ";
+        if (enPassantCapturable != null) {
+            str += enPassantCapturable.toString() + "]\n";
+        } else {
+            str += "nowhere]\n";
+        }
+        return str;
+    }
+
     public GameFlags() {
         blackACastle = true;
         blackHCastle = true;

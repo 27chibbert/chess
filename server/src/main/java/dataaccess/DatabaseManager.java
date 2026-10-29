@@ -2,15 +2,20 @@ package dataaccess;
 
 import chess.ChessGame;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializer;
 import com.google.gson.reflect.TypeToken;
 import records.AuthDAO;
 import records.GameDAO;
 import records.UserDAO;
 import org.mindrot.jbcrypt.BCrypt;
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
+
+import static chess.ChessGame.TeamColor.*;
 
 public class DatabaseManager implements DataAccess {
     private static String databaseName;
@@ -114,8 +119,9 @@ public class DatabaseManager implements DataAccess {
     @Override
     public int addGame(String gameName) {
         try (var conn = getConnection()) {
-            try (var statement = conn.prepareStatement("INSERT INTO games (gameName) VALUES (?)")) {
+            try (var statement = conn.prepareStatement("INSERT INTO games (gameName, game) VALUES (?, ?)")) {
                 statement.setString(1, gameName);
+                statement.setString(2, serializer.toJson(new ChessGame()));
                 statement.executeUpdate();
             }
             try (var query = conn.prepareStatement("SELECT id FROM games WHERE gameName = ?")) {
@@ -134,13 +140,15 @@ public class DatabaseManager implements DataAccess {
 
     @Override
     public GameDAO getGame(int id) {
+        GameDAO game;
         try (var conn = getConnection()) {
             try (var query = conn.prepareStatement("SELECT * FROM games WHERE id = ?")) {
                 query.setInt(1, id);
                 var result = query.executeQuery();
                 if (result.next()) {
-                    ChessGame gameState = serializer.fromJson(result.getString(5));
-                    GameDAO game = new GameDAO(result.getInt(1), result.getString(2), result.getString(3), result.getString(4), serializer.fromJson() (GameDAO));
+                    game = new GameDAO(result.getInt(1), result.getString(2),
+                            result.getString(3), result.getString(4),
+                            serializer.fromJson(result.getString(5), ChessGame.class));
                 } else {
                     return null;
                 }
@@ -148,16 +156,56 @@ public class DatabaseManager implements DataAccess {
         } catch (DataAccessException | SQLException e) {
             return null;
         }
+        return game;
     }
 
     @Override
     public List<GameDAO> getAllGames() {
-        return List.of();
+        List<GameDAO> games = new ArrayList<>();
+        try (var conn = getConnection()) {
+            try (var query = conn.prepareStatement("SELECT * FROM games")) {
+                var result = query.executeQuery();
+                while (result.next()) {
+                    games.add(new GameDAO(result.getInt(1), result.getString(2),
+                            result.getString(3), result.getString(4),
+                            serializer.fromJson(result.getString(5), ChessGame.class)));
+                }
+            }
+        } catch (SQLException | DataAccessException e) {
+            return null;
+        }
+        return games;
     }
 
     @Override
     public boolean updateGame(String username, ChessGame.TeamColor color, int gameID) {
-        return false;
+        try (var conn = getConnection()) {
+            try (var query = conn.prepareStatement("SELECT * FROM games WHERE id = ?")) {
+                query.setInt(1, gameID);
+                var result = query.executeQuery();
+                if (result.next()) {
+                    if (color == WHITE && result.getString(2) == null) {
+                        var query2 = conn.prepareStatement("UPDATE games SET whiteUsername = ? WHERE id = ?");
+                        query2.setString(1, username);
+                        query2.setInt(2, gameID);
+                        query2.executeUpdate();
+
+                    } else if (color == BLACK && result.getString(3) == null) {
+                        var query2 = conn.prepareStatement("UPDATE games SET blackUsername = ? WHERE id = ?");
+                        query2.setString(1, username);
+                        query2.setInt(2, gameID);
+                        query2.executeUpdate();
+                    } else {
+                        return false;
+                    }
+                } else {
+                    return false;
+                }
+            }
+        } catch (SQLException | DataAccessException e) {
+            return false;
+        }
+        return true;
     }
 
     @Override
@@ -166,12 +214,8 @@ public class DatabaseManager implements DataAccess {
             conn.prepareStatement("DROP TABLE users;").execute();
             conn.prepareStatement("DROP TABLE sessions;").execute();
             conn.prepareStatement("DROP TABLE games;").execute();
-        } catch (DataAccessException | SQLException e) {
-            return false;
-        }
-        try {
             createDatabase();
-        } catch (DataAccessException e) {
+        } catch (DataAccessException | SQLException e) {
             return false;
         }
         return true;
@@ -199,7 +243,7 @@ public class DatabaseManager implements DataAccess {
                 "whiteUsername VARCHAR(255)," +
                 "blackUsername VARCHAR(255)," +
                 "gameName VARCHAR(255) NOT NULL," +
-                "game VARCHAR(1023)," +
+                "game VARCHAR(2047)," +
                 "PRIMARY KEY (id) );";
         try (var conn = DriverManager.getConnection(connectionUrl, dbUsername, dbPassword);
              var preparedStatement = conn.prepareStatement(statement)) {

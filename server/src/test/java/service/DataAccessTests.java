@@ -2,6 +2,7 @@ package service;
 
 import chess.ChessGame;
 import dataaccess.DataAccess;
+import dataaccess.DatabaseException;
 import org.junit.jupiter.api.*;
 import records.*;
 import dataaccess.MemoryDataAccess;
@@ -20,7 +21,7 @@ public class DataAccessTests {
     private static List<GameDAO> fullGames;
     private static List<GameDAO> fakeGames;
 
-    public static void prepareDataAccess() {
+    public static void prepareDataAccess() throws DatabaseException {
         testDatabase = new DatabaseManager();
         testDatabase.clearAll();
         users = new ArrayList<>();
@@ -38,7 +39,7 @@ public class DataAccessTests {
 
     @Test
     @DisplayName("Add and authenticate user")
-    public void addAuthUsers() {
+    public void addAuthUsers() throws DatabaseException {
         prepareDataAccess();
         for (UserDAO user : users) {
             sessions.add(testDatabase.addUser(user.username(), user.password(), user.email()));
@@ -56,7 +57,7 @@ public class DataAccessTests {
 
     @Test
     @DisplayName("Authenticate Session")
-    public void authSession() {
+    public void authSession() throws DatabaseException {
         prepareDataAccess();
         for (UserDAO user : users) {
             sessions.add(testDatabase.addUser(user.username(), user.password(), user.email()));
@@ -71,7 +72,7 @@ public class DataAccessTests {
 
     @Test
     @DisplayName("Remove Session")
-    public void removeSession() {
+    public void removeSession() throws DatabaseException {
         prepareDataAccess();
         for (UserDAO user : users) {
             sessions.add(testDatabase.addUser(user.username(), user.password(), user.email()));
@@ -87,7 +88,7 @@ public class DataAccessTests {
 
     @Test
     @DisplayName("Add and Get Games")
-    public void addGetGames() {
+    public void addGetGames() throws DatabaseException {
         prepareDataAccess();
         for (String name : gameNames) {
             int id = testDatabase.addGame(name);
@@ -104,7 +105,7 @@ public class DataAccessTests {
 
     @Test
     @DisplayName("List Games")
-    public void listGames() {
+    public void listGames() throws DatabaseException {
         addGetGames();
         List<GameDAO> gameList = testDatabase.getAllGames();
         assertEquals(gameList.toString(), fullGames.toString());
@@ -112,7 +113,7 @@ public class DataAccessTests {
 
     @Test
     @DisplayName("Edit Games")
-    public void editGames() {
+    public void editGames() throws DatabaseException {
         addGetGames();
         GameDAO editedGame = new GameDAO(1, "White", "Black", "Game1", new ChessGame());
         assertTrue(testDatabase.updateGame("White", ChessGame.TeamColor.WHITE, 1));
@@ -123,7 +124,7 @@ public class DataAccessTests {
 
     @Test
     @DisplayName("Clear Database")
-    public void clear() {
+    public void clear() throws DatabaseException {
         addGetGames();
         for (UserDAO user : users) {
             sessions.add(testDatabase.addUser(user.username(), user.password(), user.email()));

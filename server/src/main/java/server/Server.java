@@ -126,6 +126,9 @@ public class Server {
         } catch (DataAccessException e) {
             badRequest(ctx);
             return;
+        } catch (Exception e) {
+            serverError(ctx, e);
+            return;
         }
         String response = "{\"gameID\":\"" + newGameID.toString() + "\"}";
         ctx.result(response);
@@ -138,6 +141,9 @@ public class Server {
             gameList = service.listGames(authToken);
         } catch (InvalidLoginException e) {
             unauthorized(ctx);
+            return;
+        } catch (Exception e) {
+            serverError(ctx, e);
             return;
         }
         String response = "{\"games\":" + serializer.toJson(gameList) + "}";
@@ -163,6 +169,9 @@ public class Server {
             return;
         } catch (DataAccessException e) {
             badRequest(ctx);
+            return;
+        } catch (Exception e) {
+            serverError(ctx, e);
             return;
         }
         ctx.result("{}");

@@ -2,12 +2,8 @@ package dataaccess;
 
 import chess.ChessGame;
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonDeserializer;
-import com.google.gson.reflect.TypeToken;
 import records.AuthDAO;
 import records.GameDAO;
-import records.UserDAO;
 import org.mindrot.jbcrypt.BCrypt;
 import java.sql.*;
 import java.util.ArrayList;
@@ -32,7 +28,7 @@ public class DatabaseManager implements DataAccess {
     }
 
     @Override
-    public AuthDAO addUser(String username, String password, String email) {
+    public AuthDAO addUser(String username, String password, String email) throws DatabaseException {
         AuthDAO session;
         try (var conn = getConnection()) {
             try (var query = conn.prepareStatement("SELECT * FROM users WHERE username = ?")) {
@@ -60,7 +56,7 @@ public class DatabaseManager implements DataAccess {
     }
 
     @Override
-    public AuthDAO newSession(String username, String password) {
+    public AuthDAO newSession(String username, String password) throws DatabaseException {
         AuthDAO session;
         try (var conn = getConnection()) {
             try (var query = conn.prepareStatement("SELECT * FROM users WHERE username = ?")) {
@@ -84,7 +80,7 @@ public class DatabaseManager implements DataAccess {
     }
 
     @Override
-    public AuthDAO getSession(String authToken) {
+    public AuthDAO getSession(String authToken) throws DatabaseException {
         try (var conn = getConnection()) {
             try (var query = conn.prepareStatement("SELECT * FROM sessions WHERE authToken = ?")) {
                 query.setString(1, authToken);
@@ -101,7 +97,7 @@ public class DatabaseManager implements DataAccess {
     }
 
     @Override
-    public boolean endSession(String authToken) {
+    public boolean endSession(String authToken) throws DatabaseException {
         try (var conn = getConnection()) {
             try (var statement = conn.prepareStatement("DELETE FROM sessions WHERE authToken = ?")) {
                 statement.setString(1, authToken);
@@ -117,7 +113,7 @@ public class DatabaseManager implements DataAccess {
     }
 
     @Override
-    public int addGame(String gameName) {
+    public int addGame(String gameName) throws DatabaseException {
         try (var conn = getConnection()) {
             try (var statement = conn.prepareStatement("INSERT INTO games (gameName, game) VALUES (?, ?)")) {
                 statement.setString(1, gameName);
@@ -139,7 +135,7 @@ public class DatabaseManager implements DataAccess {
     }
 
     @Override
-    public GameDAO getGame(int id) {
+    public GameDAO getGame(int id) throws DatabaseException {
         GameDAO game;
         try (var conn = getConnection()) {
             try (var query = conn.prepareStatement("SELECT * FROM games WHERE id = ?")) {
@@ -160,7 +156,7 @@ public class DatabaseManager implements DataAccess {
     }
 
     @Override
-    public List<GameDAO> getAllGames() {
+    public List<GameDAO> getAllGames() throws DatabaseException {
         List<GameDAO> games = new ArrayList<>();
         try (var conn = getConnection()) {
             try (var query = conn.prepareStatement("SELECT * FROM games")) {
@@ -178,7 +174,7 @@ public class DatabaseManager implements DataAccess {
     }
 
     @Override
-    public boolean updateGame(String username, ChessGame.TeamColor color, int gameID) {
+    public boolean updateGame(String username, ChessGame.TeamColor color, int gameID) throws DatabaseException {
         try (var conn = getConnection()) {
             try (var query = conn.prepareStatement("SELECT * FROM games WHERE id = ?")) {
                 query.setInt(1, gameID);
@@ -209,7 +205,7 @@ public class DatabaseManager implements DataAccess {
     }
 
     @Override
-    public boolean clearAll() {
+    public boolean clearAll() throws DatabaseException {
         try (var conn = getConnection()) {
             conn.prepareStatement("DROP TABLE users;").execute();
             conn.prepareStatement("DROP TABLE sessions;").execute();
@@ -270,14 +266,14 @@ public class DatabaseManager implements DataAccess {
      * }
      * </code>
      */
-    static Connection getConnection() throws DataAccessException {
+    static Connection getConnection() throws DataAccessException, DatabaseException {
         try {
             //do not wrap the following line with a try-with-resources
             var conn = DriverManager.getConnection(connectionUrl, dbUsername, dbPassword);
             conn.setCatalog(databaseName);
             return conn;
         } catch (SQLException ex) {
-            throw new DataAccessException("failed to get connection", ex);
+            throw new DatabaseException("failed to get connection", ex);
         }
     }
 

@@ -10,10 +10,10 @@ public class ServiceProvider {
     private DataAccess db;
 
     public ServiceProvider() {
-        db = new MemoryDataAccess();
+        db = new DatabaseManager();
     }
 
-    public AuthDAO registerUser(String username, String password, String email) throws DataAccessException {
+    public AuthDAO registerUser(String username, String password, String email) throws DataAccessException, DatabaseException {
         AuthDAO result = db.addUser(username, password, email);
         if (result == null) {
             throw new AlreadyTakenException("Username already taken");
@@ -22,7 +22,7 @@ public class ServiceProvider {
         }
     }
 
-    public AuthDAO loginUser(String username, String password) throws InvalidLoginException {
+    public AuthDAO loginUser(String username, String password) throws InvalidLoginException, DatabaseException {
         AuthDAO result = db.newSession(username, password);
         if (result == null) {
             throw new InvalidLoginException("Invalid username and/or password");
@@ -31,7 +31,7 @@ public class ServiceProvider {
         }
     }
 
-    private AuthDAO authSession(String authToken) throws InvalidLoginException {
+    private AuthDAO authSession(String authToken) throws InvalidLoginException, DatabaseException {
         if (authToken == null) {
             throw new InvalidLoginException("Invalid credentials");
         }
@@ -43,13 +43,13 @@ public class ServiceProvider {
         }
     }
 
-    public void logoutSession(String authToken) throws InvalidLoginException {
+    public void logoutSession(String authToken) throws InvalidLoginException, DatabaseException {
         if (!db.endSession(authToken)) {
             throw new InvalidLoginException("Invalid credentials");
         }
     }
 
-    public int createGame(String authToken, String gameName) throws InvalidLoginException, DataAccessException {
+    public int createGame(String authToken, String gameName) throws InvalidLoginException, DataAccessException, DatabaseException {
         authSession(authToken);
         if (gameName == null) {
             throw new DataAccessException("Must send game name");
@@ -59,12 +59,12 @@ public class ServiceProvider {
         return id;
     }
 
-    public List<GameDAO> listGames(String authToken) throws InvalidLoginException {
+    public List<GameDAO> listGames(String authToken) throws InvalidLoginException, DatabaseException {
         authSession(authToken);
         return db.getAllGames();
     }
 
-    public void joinToGame(String authToken, ChessGame.TeamColor color, int gameID) throws InvalidLoginException, DataAccessException {
+    public void joinToGame(String authToken, ChessGame.TeamColor color, int gameID) throws InvalidLoginException, DataAccessException, DatabaseException {
         AuthDAO identity = authSession(authToken);
         if (color == null) {
             throw new DataAccessException("Bad request - invalid color");
@@ -72,12 +72,12 @@ public class ServiceProvider {
         if (db.getGame(gameID) == null) {
             throw new DataAccessException("Bad request - invalid gameID");
         }
-        if (!db.updateGame(identity.username(), color, gameID)){
+        if (!db.updateGame(identity.username(), color, gameID)) {
             throw new AlreadyTakenException("Invalid game edit. Username already filled");
         }
     }
 
-    public void clear() {
+    public void clear() throws DatabaseException {
         db.clearAll();
     }
 }

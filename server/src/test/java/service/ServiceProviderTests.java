@@ -1,9 +1,9 @@
 package service;
 
 import chess.ChessGame;
-import dataaccess.DataAccessException;
 import dataaccess.InvalidLoginException;
-import org.eclipse.jetty.server.Authentication;
+import dataaccess.DataAccessException;
+import dataaccess.DatabaseException;
 import org.junit.jupiter.api.*;
 import records.*;
 
@@ -20,8 +20,9 @@ public class ServiceProviderTests {
     private static List<String> gameNames;
     private static List<GameDAO> fullGames;
 
-    private void prepareData() {
+    private void prepareData() throws DatabaseException {
         service = new ServiceProvider();
+        service.clear();
         users = new ArrayList<>();
         fakeUsers = new ArrayList<>();
         sessions = new ArrayList<>();
@@ -48,10 +49,11 @@ public class ServiceProviderTests {
         fullGames.add(new GameDAO(1, null, null, "Game1", new ChessGame()));
         fullGames.add(new GameDAO(2, null, null, "Game2", new ChessGame()));
         fullGames.add(new GameDAO(3, null, null, "Game3", new ChessGame()));
+
     }
     @Test
     @DisplayName("User Registration")
-    public void testUserRegistration() throws DataAccessException, InvalidLoginException {
+    public void testUserRegistration() throws DataAccessException, InvalidLoginException, DatabaseException {
         prepareData();
         for (UserDAO user : users) {
             sessions.add(service.registerUser(user.username(), user.password(), user.email()));
@@ -63,7 +65,7 @@ public class ServiceProviderTests {
 
     @Test
     @DisplayName("User Logout")
-    public void testUserLogout() throws DataAccessException, InvalidLoginException {
+    public void testUserLogout() throws DataAccessException, InvalidLoginException, DatabaseException {
         prepareData();
         for (UserDAO user : users) {
             sessions.add(service.registerUser(user.username(), user.password(), user.email()));
@@ -78,7 +80,7 @@ public class ServiceProviderTests {
 
     @Test
     @DisplayName("User Login")
-    public void testUserLogin() throws DataAccessException, InvalidLoginException {
+    public void testUserLogin() throws DataAccessException, InvalidLoginException, DatabaseException {
         prepareData();
         for (UserDAO user : users) {
             sessions.add(service.registerUser(user.username(), user.password(), user.email()));
@@ -96,7 +98,7 @@ public class ServiceProviderTests {
 
     @Test
     @DisplayName("Create Game")
-    public void testCreateGame() throws DataAccessException, InvalidLoginException {
+    public void testCreateGame() throws DataAccessException, InvalidLoginException, DatabaseException {
         prepareData();
         UserDAO user = users.getFirst();
         AuthDAO session = service.registerUser(user.username(), user.password(), user.email());
@@ -108,7 +110,7 @@ public class ServiceProviderTests {
 
     @Test
     @DisplayName("List Games")
-    public void testListGames() throws DataAccessException, InvalidLoginException {
+    public void testListGames() throws DataAccessException, InvalidLoginException, DatabaseException {
         prepareData();
         UserDAO user = users.getFirst();
         AuthDAO session = service.registerUser(user.username(), user.password(), user.email());
@@ -126,7 +128,7 @@ public class ServiceProviderTests {
 
     @Test
     @DisplayName("Join User to Game")
-    public void testJoinToGame() throws DataAccessException, InvalidLoginException {
+    public void testJoinToGame() throws DataAccessException, InvalidLoginException, DatabaseException {
         prepareData();
         UserDAO user = users.getFirst();
         AuthDAO session = service.registerUser(user.username(), user.password(), user.email());

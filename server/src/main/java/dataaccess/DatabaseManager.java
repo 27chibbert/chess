@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
+import java.lang.RuntimeException;
 
 import static chess.ChessGame.TeamColor.*;
 
@@ -23,6 +24,14 @@ public class DatabaseManager implements DataAccess {
     /*
      * Load the database information for the db.properties file.
      */
+    public DatabaseManager() {
+        try {
+            createDatabase();
+        } catch (DatabaseException e) {
+            throw new RuntimeException("Database failed to initialize");
+        }
+    }
+
     static {
         loadPropertiesFromResources();
     }
@@ -220,8 +229,8 @@ public class DatabaseManager implements DataAccess {
     /**
      * Creates the database if it does not already exist.
      */
-    static public void createDatabase() throws DataAccessException {
-        var statement = "CREATE DATABASE IF NOT EXISTS " + databaseName +";";
+    static public void createDatabase() throws DatabaseException {
+        var dbStatement = "CREATE DATABASE IF NOT EXISTS " + databaseName +";";
         var useStatement = "USE " + databaseName + ";";
         var userStatement = "CREATE TABLE IF NOT EXISTS users ( " +
                 "id INT NOT NULL AUTO_INCREMENT, " +
@@ -241,16 +250,14 @@ public class DatabaseManager implements DataAccess {
                 "gameName VARCHAR(255) NOT NULL," +
                 "game VARCHAR(2047)," +
                 "PRIMARY KEY (id) );";
-        try (var conn = DriverManager.getConnection(connectionUrl, dbUsername, dbPassword);
-             var preparedStatement = conn.prepareStatement(statement)) {
-            preparedStatement.executeUpdate();
+        try (var conn = DriverManager.getConnection(connectionUrl, dbUsername, dbPassword)) {
+            conn.prepareStatement(dbStatement).executeUpdate();
             conn.prepareStatement(useStatement).execute();
             conn.prepareStatement(userStatement).executeUpdate();
             conn.prepareStatement(sessionStatement).executeUpdate();
             conn.prepareStatement(gameStatement).executeUpdate();
-
         } catch (SQLException ex) {
-            throw new DataAccessException("failed to create database", ex);
+            throw new DatabaseException("failed to create database", ex);
         }
     }
 

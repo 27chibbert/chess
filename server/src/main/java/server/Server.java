@@ -3,6 +3,7 @@ package server;
 import com.google.gson.JsonSyntaxException;
 import dataaccess.AlreadyTakenException;
 import dataaccess.DataAccessException;
+import dataaccess.DatabaseException;
 import dataaccess.InvalidLoginException;
 import io.javalin.*;
 import io.javalin.http.Context;
@@ -21,7 +22,6 @@ public class Server {
 
     public Server() {
         service = new ServiceProvider();
-
         javalin = Javalin.create(config -> config.staticFiles.add("web"));
         // Register your endpoints and exception handlers here - exception handlers handled in functions
         javalin.post("/user", ctx -> postUser(ctx));
@@ -52,7 +52,7 @@ public class Server {
             ctx.status(403);
             ctx.result("{ \"message\":\"Error: already taken\" }");
             return;
-        } catch (Exception e) {
+        } catch (DatabaseException e) {
             serverError(ctx, e);
             return;
         }
@@ -76,7 +76,7 @@ public class Server {
         } catch (InvalidLoginException e) {
             unauthorized(ctx);
             return;
-        } catch (Exception e) {
+        } catch (DatabaseException e) {
             serverError(ctx, e);
             return;
         }
@@ -101,7 +101,7 @@ public class Server {
         } catch (InvalidLoginException e) {
             unauthorized(ctx);
             return;
-        } catch (Exception e) {
+        } catch (DatabaseException e) {
             serverError(ctx, e);
             return;
         }
@@ -126,7 +126,7 @@ public class Server {
         } catch (DataAccessException e) {
             badRequest(ctx);
             return;
-        } catch (Exception e) {
+        } catch (DatabaseException e) {
             serverError(ctx, e);
             return;
         }
@@ -142,7 +142,7 @@ public class Server {
         } catch (InvalidLoginException e) {
             unauthorized(ctx);
             return;
-        } catch (Exception e) {
+        } catch (DatabaseException e) {
             serverError(ctx, e);
             return;
         }
@@ -170,7 +170,7 @@ public class Server {
         } catch (DataAccessException e) {
             badRequest(ctx);
             return;
-        } catch (Exception e) {
+        } catch (DatabaseException e) {
             serverError(ctx, e);
             return;
         }
@@ -180,7 +180,7 @@ public class Server {
     private void deleteDb(Context ctx) {
         try {
             service.clear();
-        } catch (Exception e) {
+        } catch (DatabaseException e) {
             serverError(ctx, e);
             return;
         }

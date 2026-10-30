@@ -1,11 +1,11 @@
-package service;
+package dataaccess;
 
 import chess.ChessGame;
-import dataaccess.DataAccess;
-import dataaccess.DatabaseException;
 import org.junit.jupiter.api.*;
 import records.*;
 import dataaccess.sql.DatabaseManager;
+import service.ServiceProviderTests;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.*;

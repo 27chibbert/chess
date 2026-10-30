@@ -1,6 +1,7 @@
-package dataaccess;
+package dataaccess.memory;
 
 import chess.ChessGame;
+import dataaccess.DataAccess;
 import records.AuthDAO;
 import records.GameDAO;
 import records.UserDAO;

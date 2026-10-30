@@ -1,6 +1,7 @@
 package service;
 import chess.ChessGame;
 import dataaccess.*;
+import dataaccess.sql.DatabaseManager;
 import records.*;
 
 import java.util.List;
@@ -64,7 +65,8 @@ public class ServiceProvider {
         return db.getAllGames();
     }
 
-    public void joinToGame(String authToken, ChessGame.TeamColor color, int gameID) throws InvalidLoginException, DataAccessException, DatabaseException {
+    public void joinToGame(String authToken, ChessGame.TeamColor color, int gameID) throws
+            InvalidLoginException, DataAccessException, DatabaseException {
         AuthDAO identity = authSession(authToken);
         if (color == null) {
             throw new DataAccessException("Bad request - invalid color");

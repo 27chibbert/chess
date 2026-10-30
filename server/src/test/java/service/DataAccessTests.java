@@ -5,8 +5,7 @@ import dataaccess.DataAccess;
 import dataaccess.DatabaseException;
 import org.junit.jupiter.api.*;
 import records.*;
-import dataaccess.MemoryDataAccess;
-import dataaccess.DatabaseManager;
+import dataaccess.sql.DatabaseManager;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.*;

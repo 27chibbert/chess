@@ -82,7 +82,11 @@ public class ChessClient {
                     System.out.println("You've logged in! Enter commands to play. Enter 'help' to see available commands.");
                     String input = stdin.nextLine();
                     String command = getToken.apply(input, 0);
-                    state = UserState.UNAUTHENTICATED;
+                    if (command == null) {
+                        System.out.println("Invalid command, try again\n");
+                    } else if (command.equals("logout")) {
+                        logout();
+                    }
                 }
                 case AUTHENTICATEDHELP -> {
                     printAuthHelp();
@@ -112,6 +116,18 @@ public class ChessClient {
             resolveResponse(result);
         } else {
             System.out.println("Bad command format. Type 'help' for more info");
+        }
+    }
+    private void logout() {
+        ServerMessage result = webClient.logout(authToken);
+        if (result.data() == null) {
+            System.out.println("Successfully logged out");
+            logger.info(String.format("User %s with token %s successfully logged out", username, authToken));
+            username = null;
+            authToken = null;
+            state = UserState.UNAUTHENTICATED;
+        } else {
+            resolveResponse(result);
         }
     }
     private void resolveResponse(ServerMessage msg) {

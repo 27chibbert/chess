@@ -1,4 +1,4 @@
 package records;
 
-public class ServerMessage {
+public record ServerMessage(Object data) {
 }

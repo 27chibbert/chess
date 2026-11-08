@@ -10,7 +10,10 @@ import io.javalin.http.Context;
 import com.google.gson.Gson;
 import records.*;
 import service.ServiceProvider;
-
+import java.util.logging.Logger;
+import java.util.logging.Level;
+import java.util.logging.FileHandler;
+import java.util.logging.SimpleFormatter;
 import java.util.List;
 import java.util.Map;
 
@@ -19,6 +22,7 @@ public class Server {
     private final Javalin javalin;
     private ServiceProvider service;
     private static Gson serializer = new Gson();
+    private static final Logger logger = Logger.getLogger("Server Log");
 
     public Server() {
         service = new ServiceProvider();
@@ -32,6 +36,13 @@ public class Server {
         javalin.put("/game", ctx -> putGame(ctx));
         javalin.get("/game", ctx -> getGame(ctx));
         //
+        try {
+            FileHandler fd = new FileHandler("logs/server.log", true);
+            fd.setFormatter(new SimpleFormatter());
+            logger.addHandler(fd);
+        } catch (Exception e) {
+            System.out.println("Server logger failed to start");
+        }
     }
 
     private void postUser(Context ctx) {
@@ -57,6 +68,7 @@ public class Server {
             return;
         }
         ctx.result(serializer.toJson(authData));
+        logger.info(authData.toString() + " was successfully added to database.");
     }
 
     private void postSession(Context ctx) {

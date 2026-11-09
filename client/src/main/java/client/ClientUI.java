@@ -45,13 +45,15 @@ public class ClientUI {
                         result = client.login(input);
                     } else if (command.equals("quit")) {
                         return;
-                    } else if (command.equals("print")) {
+                    } /* else if (command.equals("print")) {
                         try {
                             ChessGame game = new ChessGame();
                             game.makeMove(new ChessMove(new ChessPosition(2, 4), new ChessPosition(4, 4), null));
-                        System.out.println(printGame(new GameDAO(10, "", "", "", game)));
-                    } catch (InvalidMoveException e) {}
+                            System.out.println(printGame(new GameDAO(10, "", "", "", game)));
+                        } catch (InvalidMoveException e) {}
                     }
+
+                    THE CODE ABOVE WAS ADDED FOR TESTING */
                 }
                 case AUTHENTICATED -> {
                     System.out.println("You're logged in. Enter commands to play. Enter 'help' to see available commands.");
@@ -63,7 +65,17 @@ public class ClientUI {
                         result = client.logout();
                     } else if (command.equals("help")) {
                         printAuthHelp();
-                    }
+                    } else if (command.equals("quit")) {
+                        client.logout();
+                        System.out.println("Goodbye. Play again soon!");
+                        return;
+                    } else if (command.equals("create")) {
+                        result = client.createGame(input);
+                    } else if (command.equals("join")) {
+                        result = client.joinGame(input);
+                    } else if (command.equals("observe")) {
+
+                    };
                 }
             }
             if (result.authd()) {
@@ -74,6 +86,7 @@ public class ClientUI {
             System.out.println(result.toPrint());
         }
     }
+
     private String printGame(GameDAO game) {
         StringBuilder str = new StringBuilder();
         ChessGame.TeamColor color = game.game().getTeamTurn();
@@ -108,7 +121,6 @@ public class ClientUI {
         }
         return str.toString();
     }
-
     private String printSpace(GameDAO game, int rank, int file) {
         ChessPiece piece = game.game().getBoard().getPiece(new ChessPosition(rank ,file));
         if (piece == null) {
@@ -176,7 +188,7 @@ public class ClientUI {
                         "'quit' - Quit the chess app\n" +
                         "'create <NAME>' - Start a new game" +
                         "'list' - See all existing games on the server\n" +
-                        "'join <ID>' - Join a game and play\n" +
+                        "'join <ID> [WHITE|BLACK]' - Join a game and play\n" +
                         "'observe <ID>' - Observe an active game\n"
         );
     }

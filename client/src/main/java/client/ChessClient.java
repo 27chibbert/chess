@@ -1,5 +1,6 @@
 package client;
 
+import chess.ChessGame;
 import records.*;
 
 import java.util.function.BiFunction;
@@ -82,6 +83,40 @@ public class ChessClient {
             return resolveResponse(result);
         }
     }
+    public ClientMessage createGame(String input) {
+        if (!getToken.apply(input, 1).isEmpty() && getToken.apply(input, 2).isEmpty()) {
+            String gameName = getToken.apply(input, 1);
+            ServerMessage result = webClient.createGame(authToken, gameName);
+            return resolveResponse(result);
+        } else {
+            return new ClientMessage(authed(), "Bad command format. Type 'help' for more info", null);
+        }
+    }
+    public ClientMessage joinGame(String input) {
+        if (!getToken.apply(input, 1).isEmpty() && !getToken.apply(input, 2).isEmpty()) {
+            int gameID;
+            ChessGame.TeamColor color;
+            try {
+                gameID = Integer.parseInt(getToken.apply(input, 1));
+            } catch (NumberFormatException e) {
+                return new ClientMessage(authed(), "Bad command format. ID wasn't an integer", null);
+            }
+            if (getToken.apply(input, 2).equalsIgnoreCase("WHITE")) {
+                color = ChessGame.TeamColor.WHITE;
+            } else if (getToken.apply(input, 2).equalsIgnoreCase("BLACK")) {
+                color = ChessGame.TeamColor.BLACK;
+            } else {
+                return new ClientMessage(authed(), "Bad command format. Color must be 'WHITE' or 'BLACK'", null);
+            }
+            ServerMessage result = webClient.joinGame(authToken, gameID, color);
+            if (result.data() == null) {
+                return new ClientMessage(authed(), String.format("Successfully joined game %d", gameID), null);
+            }
+            return resolveResponse(result);
+        } else {
+            return new ClientMessage(authed(), "Bad command format. Type 'help' for more info", null);
+        }
+    }
     private ClientMessage resolveResponse(ServerMessage msg) {
         if (msg.data().getClass() == String.class) {
             String err = (String) msg.data();
@@ -95,6 +130,8 @@ public class ChessClient {
             state = UserState.AUTHENTICATED;
             logger.info(String.format("Logged in as user %s with authToken %s", username, authToken));
             return new ClientMessage(authed(), out, null);
+        } else if (msg.data().getClass() == Integer.class) {
+            return new ClientMessage(authed(), String.format("New game created with ID %d", msg.data()), null);
         } else {
             return new ClientMessage(authed(), "A client-side error has occured", null);
         }

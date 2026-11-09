@@ -1,5 +1,6 @@
 package client;
 
+import chess.ChessGame;
 import records.*;
 
 import java.io.IOException;
@@ -75,6 +76,57 @@ public class ServerFacade {
                     .DELETE()
                     .header("authorization", authToken)
                     .build();
+            var res = httpClient.send(req, HttpResponse.BodyHandlers.ofString());
+            if (res.statusCode() == 200) {
+                return new ServerMessage(null);
+            } else {
+                return errorHandler(res);
+            }
+        } catch (Exception e) {
+            return new ServerMessage("Timeout or Client-side Error");
+        }
+    }
+
+    public ServerMessage createGame(String authToken, String gameName) {
+        record Response(int gameID) {};
+        record Request(String gameName) {};
+        try {
+            Request reqBody = new Request(gameName);
+            String body = serializer.toJson(reqBody);
+            HttpRequest req = HttpRequest.newBuilder()
+                    .uri(new URI(uriStr("/game")))
+                    .timeout(java.time.Duration.ofMillis(5000))
+                    .POST(HttpRequest.BodyPublishers.ofString(body))
+                    .header("authorization", authToken)
+                    .build();
+            var res = httpClient.send(req, HttpResponse.BodyHandlers.ofString());
+            if (res.statusCode() == 200) {
+                Response resBody = serializer.fromJson(res.body(), Response.class);
+                return new ServerMessage((Integer) resBody.gameID());
+            } else {
+                return errorHandler(res);
+            }
+        } catch (Exception e) {
+            return new ServerMessage("Timeout or Client-side Error");
+        }
+    }
+
+    public ServerMessage joinGame(String authToken, int gameID, ChessGame.TeamColor color) {
+        record Request(String playerColor, int gameID) {};
+        try {
+            Request reqBody;
+            if (color == ChessGame.TeamColor.WHITE) {
+                reqBody = new Request("WHITE", gameID);
+            } else {
+                reqBody = new Request("BLACK", gameID);
+            }
+            String body = serializer.toJson(reqBody);
+            HttpRequest req = HttpRequest.newBuilder()
+                            .uri(new URI(uriStr("/game")))
+                            .timeout(java.time.Duration.ofMillis(5000))
+                            .PUT(HttpRequest.BodyPublishers.ofString(body))
+                            .header("authorization", authToken)
+                            .build();
             var res = httpClient.send(req, HttpResponse.BodyHandlers.ofString());
             if (res.statusCode() == 200) {
                 return new ServerMessage(null);

@@ -1,8 +1,6 @@
 package client;
 
-import chess.ChessGame;
-import chess.ChessPiece;
-import chess.ChessPosition;
+import chess.*;
 import records.ClientMessage;
 import records.GameDAO;
 
@@ -48,7 +46,11 @@ public class ClientUI {
                     } else if (command.equals("quit")) {
                         return;
                     } else if (command.equals("print")) {
-                        printGame(new GameDAO(10, "", "", "", new ChessGame()));
+                        try {
+                            ChessGame game = new ChessGame();
+                            game.makeMove(new ChessMove(new ChessPosition(2, 4), new ChessPosition(4, 4), null));
+                        System.out.println(printGame(new GameDAO(10, "", "", "", game)));
+                    } catch (InvalidMoveException e) {}
                     }
                 }
                 case AUTHENTICATED -> {
@@ -72,41 +74,45 @@ public class ClientUI {
             System.out.println(result.toPrint());
         }
     }
-    private void printGame(GameDAO game) {
-        String str = "";
+    private String printGame(GameDAO game) {
+        StringBuilder str = new StringBuilder();
         ChessGame.TeamColor color = game.game().getTeamTurn();
         if (color == WHITE) {
             for (int rank = 8; rank >= 1; rank -= 1) {
+                str.append(rank).append(" ");
                 for (int file = 1; file <= 8; file += 1) {
-                    if ((file + rank - 1) % 2 == 0) {
-                        str += SET_BG_COLOR_DARK_GREY;
+                    if ((file + rank) % 2 == 0) {
+                        str.append(SET_BG_COLOR_DARK_GREY);
                     } else {
-                        str += SET_BG_COLOR_LIGHT_GREY;
+                        str.append(SET_BG_COLOR_LIGHT_GREY);
                     }
-                    str += printSpace(game, rank, file);
+                    str.append(printSpace(game, rank, file));
                 }
-                str += SET_BG_COLOR_BLACK + " \n";
+                str.append(SET_BG_COLOR_BLACK + " \n");
             }
+            str.append("  \u2009A \u3000B \u3000C \u3000D \u3000E \u3000F \u3000G \u3000H  \n");
         } else {
             for (int rank = 1; rank <= 8; rank += 1) {
+                str.append(rank).append(" ");
                 for (int file = 8; file >= 1; file -= 1) {
                     if ((file + rank - 1) % 2 == 0) {
-                        str += SET_BG_COLOR_DARK_GREY;
+                        str.append(SET_BG_COLOR_DARK_GREY);
                     } else {
-                        str += SET_BG_COLOR_LIGHT_GREY;
+                        str.append(SET_BG_COLOR_LIGHT_GREY);
                     }
-                    str += printSpace(game, rank, file);
+                    str.append(printSpace(game, rank, file));
                 }
-                str += SET_BG_COLOR_BLACK + " \n";
+                str.append(SET_BG_COLOR_BLACK + " \n");
             }
+            str.append("   H\u3000 G\u3000 F\u3000 E\u3000 D\u3000 C\u3000 B\u3000 A  \n");
         }
-        System.out.println(str);
+        return str.toString();
     }
 
     private String printSpace(GameDAO game, int rank, int file) {
         ChessPiece piece = game.game().getBoard().getPiece(new ChessPosition(rank ,file));
         if (piece == null) {
-            return "" + EMPTY + "";
+            return EMPTY;
         }
         if (piece.getTeamColor() == WHITE) {
             switch (piece.getPieceType()) {

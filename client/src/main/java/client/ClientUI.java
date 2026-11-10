@@ -6,6 +6,7 @@ import records.GameDAO;
 
 import java.util.Scanner;
 
+import static chess.ChessGame.TeamColor.BLACK;
 import static chess.ChessGame.TeamColor.WHITE;
 import static ui.EscapeSequences.*;
 
@@ -27,8 +28,9 @@ public class ClientUI {
     }
 
     public void repl() {
-        ClientMessage result = new ClientMessage(false, "", null);
         while (true) {
+            ClientMessage result = new ClientMessage(false, "", null);
+            ChessGame.TeamColor printAs = null;
             Scanner stdin = new Scanner(System.in);
             switch (state) {
                 case UNAUTHENTICATED -> {
@@ -67,6 +69,13 @@ public class ClientUI {
                         result = client.createGame(input);
                     } else if (command.equals("join")) {
                         result = client.joinGame(input);
+                        if (result.gamesToPrint() != null) {
+                            if (input.toUpperCase().contains("WHITE")) {
+                                printAs = WHITE;
+                            } else {
+                                printAs = BLACK;
+                            }
+                        }
                     } else if (command.equals("list")) {
                         result = client.listGames();
                     } else if (command.equals("observe")) {
@@ -79,11 +88,11 @@ public class ClientUI {
             } else {
                 state = UserState.UNAUTHENTICATED;
             }
-            System.out.println(printResult(result));
+            System.out.println(printResult(result, printAs));
         }
     }
 
-    private String printResult(ClientMessage msg) {
+    private String printResult(ClientMessage msg, ChessGame.TeamColor printAs) {
         StringBuilder str = new StringBuilder();
         if (msg.toPrint() == null) {
             return "";
@@ -93,16 +102,18 @@ public class ClientUI {
             return str.toString();
         }
         for (GameDAO game: msg.gamesToPrint()) {
-            str.append(printGame(game)).append('\n');
+            str.append(printGame(game, printAs)).append('\n');
         }
         return str.toString();
     }
-    private String printGame(GameDAO game) {
+    private String printGame(GameDAO game, ChessGame.TeamColor printAs) {
         StringBuilder str = new StringBuilder();
         ChessGame.TeamColor color = game.game().getTeamTurn();
+        if (printAs == null) {
+            printAs = game.game().getTeamTurn();
+        }
         str.append(SET_TEXT_COLOR_BLUE).append(SET_TEXT_BLINKING).append(SET_TEXT_BOLD).append("------ Game # ").append(game.gameID()).append(" - ")
                 .append(game.gameName()).append(" ------\n").append(RESET_TEXT_BOLD_FAINT).append(RESET_TEXT_BLINKING).append(RESET_TEXT_COLOR);
-        //str.append("Game ID: ").append(game.gameID()).append('\n');
         if (game.whiteUsername() == null) {
             str.append("White player: -- open -- \n");
         } else {
@@ -118,7 +129,7 @@ public class ClientUI {
         } else {
             str.append("Black's turn\n");
         }
-        if (color == WHITE) {
+        if (printAs == WHITE) {
             str.append("  \u2009A \u3000B \u3000C \u3000D \u3000E \u3000F \u3000G \u3000H  \n");
             for (int rank = 8; rank >= 1; rank -= 1) {
                 str.append(rank).append(" ");

@@ -11,7 +11,6 @@ import com.google.gson.Gson;
 import records.*;
 import service.ServiceProvider;
 import java.util.logging.Logger;
-import java.util.logging.Level;
 import java.util.logging.FileHandler;
 import java.util.logging.SimpleFormatter;
 import java.util.List;
@@ -22,7 +21,7 @@ public class Server {
     private final Javalin javalin;
     private ServiceProvider service;
     private static Gson serializer = new Gson();
-    private static final Logger logger = Logger.getLogger("Server Log");
+    private static final Logger LOGGER = Logger.getLogger("Server Log");
 
     public Server() {
         service = new ServiceProvider();
@@ -39,7 +38,7 @@ public class Server {
         try {
             FileHandler fd = new FileHandler("logs/server.log", true);
             fd.setFormatter(new SimpleFormatter());
-            logger.addHandler(fd);
+            LOGGER.addHandler(fd);
         } catch (Exception e) {
             System.out.println("Server logger failed to start");
         }
@@ -68,7 +67,7 @@ public class Server {
             return;
         }
         ctx.result(serializer.toJson(authData));
-        logger.info(authData.toString() + " was successfully added to database.");
+        LOGGER.info(authData.toString() + " was successfully added to database.");
     }
 
     private void postSession(Context ctx) {

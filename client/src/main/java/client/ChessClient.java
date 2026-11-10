@@ -29,7 +29,9 @@ public class ChessClient {
     private static final Logger logger = Logger.getLogger("Server Log");
 
     BiFunction<String, Integer, String> getToken = (input, n) -> {
-        if (input == null) return "";
+        if (input == null) {
+            return "";
+        }
         String[] tokens = input.trim().split("\\s+");
         if (n >= 0 && n < tokens.length) {
             return tokens[n];
@@ -53,7 +55,7 @@ public class ChessClient {
         username = null;
         authToken = null;
         ui = new ClientUI(this);
-        ui.Repl();
+        ui.repl();
     }
 
     public ClientMessage register(String input) {

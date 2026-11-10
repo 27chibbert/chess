@@ -26,7 +26,7 @@ public class ClientUI {
         System.out.println(SET_BG_COLOR_BLACK);
     }
 
-    public void Repl() {
+    public void repl() {
         ClientMessage result = new ClientMessage(false, "", null);
         while (true) {
             Scanner stdin = new Scanner(System.in);
@@ -46,15 +46,7 @@ public class ClientUI {
                         result = client.login(input);
                     } else if (command.equals("quit")) {
                         return;
-                    } /* else if (command.equals("print")) {
-                        try {
-                            ChessGame game = new ChessGame();
-                            game.makeMove(new ChessMove(new ChessPosition(2, 4), new ChessPosition(4, 4), null));
-                            System.out.println(printGame(new GameDAO(10, null, null, "Test", game)));
-                        } catch (InvalidMoveException e) {}
                     }
-
-                    /* THE CODE ABOVE WAS ADDED FOR TESTING */
                 }
                 case AUTHENTICATED -> {
                     System.out.println("You're logged in. Enter commands to play. Enter 'help' to see available commands.");

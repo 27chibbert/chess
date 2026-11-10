@@ -6,9 +6,6 @@ import records.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
-import java.util.logging.FileHandler;
-import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
 import java.util.HashMap;
 
 public class ChessClient {
@@ -26,7 +23,6 @@ public class ChessClient {
     private String username;
     private String authToken;
     private HashMap<Integer, Integer> listToID;
-    private static Logger logger = Logger.getLogger("Server Log");
 
     BiFunction<String, Integer, String> getToken = (input, n) -> {
         if (input == null) {
@@ -41,13 +37,7 @@ public class ChessClient {
     };
 
     public ChessClient() {
-        try {
-            FileHandler fd = new FileHandler("logs/client.log", true);
-            fd.setFormatter(new SimpleFormatter());
-            logger.addHandler(fd);
-        } catch (Exception e) {
-            System.out.println("Server logger failed to start");
-        }
+
     }
 
     public void startClient() {
@@ -80,7 +70,6 @@ public class ChessClient {
         ServerMessage result = webClient.logout(authToken);
         if (result.data() == null) {
             String out = "Successfully logged out";
-            logger.info(String.format("User %s with token %s successfully logged out", username, authToken));
             username = null;
             authToken = null;
             state = UserState.UNAUTHENTICATED;
@@ -161,7 +150,6 @@ public class ChessClient {
             authToken = auth.authToken();
             String out = String.format("You logged in as user %s!\n", username);
             state = UserState.AUTHENTICATED;
-            logger.info(String.format("Logged in as user %s with authToken %s", username, authToken));
             ServerMessage result = webClient.listGames(authToken);
             mapGames((GameDAO[]) result.data());
             return new ClientMessage(authed(), out, null);

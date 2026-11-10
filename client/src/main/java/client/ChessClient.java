@@ -21,7 +21,7 @@ public class ChessClient {
     }
 
     private ClientUI ui;
-    private static final ServerFacade webClient = new ServerFacade(8080);
+    private static final ServerFacade webClient = new ServerFacade(0);
     private UserState state;
     private String username;
     private String authToken;

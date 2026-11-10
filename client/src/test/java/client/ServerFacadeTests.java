@@ -31,11 +31,12 @@ public class ServerFacadeTests {
     private static final String CLIENT_ERROR = "Timeout or Client-side Error";
     private static final String SERVER_ERROR = "Server Error";
     private static final GameDAO[] GAME_CHECK = { new GameDAO(1, null, null, "Test Game", new ChessGame()) };
+    private static Integer port;
 
     @BeforeAll
     public static void init() {
         server = new Server();
-        var port = server.run(0);
+        port = server.run(0);
         System.out.println("Started test HTTP server on " + port);
         facade = new ServerFacade(port);
     }
@@ -43,8 +44,9 @@ public class ServerFacadeTests {
     @BeforeEach
     public void clear() {
         try {
+            String uri = "http://localhost:" + port.toString() + "/db";
             HttpRequest req = HttpRequest.newBuilder()
-                    .uri(new URI("http://localhost:8080/db"))
+                    .uri(new URI(uri))
                     .timeout(java.time.Duration.ofMillis(5000))
                     .DELETE()
                     .build();

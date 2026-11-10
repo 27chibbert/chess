@@ -75,6 +75,8 @@ public class ClientUI {
                         result = client.joinGame(input);
                     } else if (command.equals("list")) {
                         result = client.listGames();
+                    } else if (command.equals("observe")) {
+                        result = client.observeGame(input);
                     };
                 }
             }

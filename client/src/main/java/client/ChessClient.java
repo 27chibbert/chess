@@ -121,6 +121,27 @@ public class ChessClient {
         ServerMessage result = webClient.listGames(authToken);
         return resolveResponse(result);
     }
+    public ClientMessage observeGame(String input) {
+        if (!getToken.apply(input, 1).isEmpty()) {
+            int gameID;
+            try {
+                gameID = Integer.parseInt(getToken.apply(input, 1));
+            } catch (NumberFormatException e) {
+                return new ClientMessage(authed(), "Bad command format. ID wasn't a number", null);
+            }
+            ServerMessage result = webClient.listGames(authToken);
+            GameDAO[] games = (GameDAO[]) result.data();
+            for (GameDAO game: games) {
+                if (game.gameID() == gameID) {
+                    GameDAO[] gameToPrint = { game };
+                    return new ClientMessage(authed(), "Observing game", gameToPrint);
+                }
+            }
+            return new ClientMessage(authed(), "Game not found", null);
+        } else {
+            return new ClientMessage(authed(), "Bad command format. Type 'help' for more info", null);
+        }
+    }
     private ClientMessage resolveResponse(ServerMessage msg) {
         if (msg.data().getClass() == String.class) {
             String err = (String) msg.data();
@@ -142,7 +163,6 @@ public class ChessClient {
             return new ClientMessage(authed(), "A client-side error has occured", null);
         }
     }
-
     private boolean authed() {
         return authToken != null;
     }

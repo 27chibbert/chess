@@ -39,6 +39,7 @@ public class Server {
             FileHandler fd = new FileHandler("logs/server.log", true);
             fd.setFormatter(new SimpleFormatter());
             LOGGER.addHandler(fd);
+            LOGGER.setUseParentHandlers(false);
         } catch (Exception e) {
             System.out.println("Server logger failed to start");
         }

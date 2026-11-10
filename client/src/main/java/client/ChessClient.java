@@ -94,9 +94,13 @@ public class ChessClient {
             try {
                 gameID = Integer.parseInt(getToken.apply(input, 1));
             } catch (NumberFormatException e) {
-                return new ClientMessage(authed(), "Bad command format. ID wasn't an integer", null);
+                return new ClientMessage(authed(), "Bad command format. Game number wasn't a number", null);
             }
-            gameID = listToID.get(gameID);
+            if (listToID.get(gameID) != null) {
+                gameID = listToID.get(gameID);
+            } else {
+                return new ClientMessage(authed(), "There's no game with that number", null);
+            }
             if (getToken.apply(input, 2).equalsIgnoreCase("WHITE")) {
                 color = ChessGame.TeamColor.WHITE;
             } else if (getToken.apply(input, 2).equalsIgnoreCase("BLACK")) {
@@ -105,8 +109,17 @@ public class ChessClient {
                 return new ClientMessage(authed(), "Bad command format. Color must be 'WHITE' or 'BLACK'", null);
             }
             ServerMessage result = webClient.joinGame(authToken, gameID, color);
+            GameDAO[] games = (GameDAO[]) webClient.listGames(authToken).data();
+            GameDAO joinedGame = null;
+            for (GameDAO game: games) {
+                if (game.gameID() == gameID) {
+                    joinedGame = game;
+                    break;
+                }
+            }
+            GameDAO[] toPrint = {joinedGame};
             if (result.data() == null) {
-                return new ClientMessage(authed(), String.format("Successfully joined game %d", gameID), null);
+                return new ClientMessage(authed(), String.format("Successfully joined game %d", gameID), toPrint);
             }
             return resolveResponse(result);
         } else {
@@ -123,9 +136,13 @@ public class ChessClient {
             try {
                 gameID = Integer.parseInt(getToken.apply(input, 1));
             } catch (NumberFormatException e) {
-                return new ClientMessage(authed(), "Bad command format. ID wasn't a number", null);
+                return new ClientMessage(authed(), "Bad command format. Game number wasn't a number", null);
             }
-            gameID = listToID.get(gameID);
+            if (listToID.get(gameID) != null) {
+                gameID = listToID.get(gameID);
+            } else {
+                return new ClientMessage(authed(), "There's no game with that number", null);
+            }
             ServerMessage result = webClient.listGames(authToken);
             GameDAO[] games = (GameDAO[]) result.data();
             for (GameDAO game: games) {
@@ -154,7 +171,8 @@ public class ChessClient {
             mapGames((GameDAO[]) result.data());
             return new ClientMessage(authed(), out, null);
         } else if (msg.data().getClass() == Integer.class) {
-            return new ClientMessage(authed(), String.format("New game created with ID %d", msg.data()), null);
+            listToID.put(listToID.size()+1, (Integer) msg.data());
+            return new ClientMessage(authed(), String.format("New game created with ID %d", listToID.size()), null);
         } else if (msg.data().getClass() == GameDAO[].class) {
             return new ClientMessage(authed(), "Current games on the server:\n", mapGames((GameDAO[]) msg.data()));
         } else {

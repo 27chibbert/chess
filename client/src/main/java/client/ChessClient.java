@@ -3,10 +3,13 @@ package client;
 import chess.ChessGame;
 import records.*;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.BiFunction;
 import java.util.logging.FileHandler;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
+import java.util.HashMap;
 
 public class ChessClient {
     enum UserState {
@@ -22,6 +25,7 @@ public class ChessClient {
     private UserState state;
     private String username;
     private String authToken;
+    private HashMap<Integer, Integer> listToID;
     private static final Logger logger = Logger.getLogger("Server Log");
 
     BiFunction<String, Integer, String> getToken = (input, n) -> {
@@ -101,6 +105,7 @@ public class ChessClient {
             } catch (NumberFormatException e) {
                 return new ClientMessage(authed(), "Bad command format. ID wasn't an integer", null);
             }
+            gameID = listToID.get(gameID);
             if (getToken.apply(input, 2).equalsIgnoreCase("WHITE")) {
                 color = ChessGame.TeamColor.WHITE;
             } else if (getToken.apply(input, 2).equalsIgnoreCase("BLACK")) {
@@ -129,6 +134,7 @@ public class ChessClient {
             } catch (NumberFormatException e) {
                 return new ClientMessage(authed(), "Bad command format. ID wasn't a number", null);
             }
+            gameID = listToID.get(gameID);
             ServerMessage result = webClient.listGames(authToken);
             GameDAO[] games = (GameDAO[]) result.data();
             for (GameDAO game: games) {
@@ -154,16 +160,29 @@ public class ChessClient {
             String out = String.format("You logged in as user %s!\n", username);
             state = UserState.AUTHENTICATED;
             logger.info(String.format("Logged in as user %s with authToken %s", username, authToken));
+            ServerMessage result = webClient.listGames(authToken);
+            mapGames((GameDAO[]) result.data());
             return new ClientMessage(authed(), out, null);
         } else if (msg.data().getClass() == Integer.class) {
             return new ClientMessage(authed(), String.format("New game created with ID %d", msg.data()), null);
         } else if (msg.data().getClass() == GameDAO[].class) {
-            return new ClientMessage(authed(), "Current games on the server:\n", (GameDAO[]) msg.data());
+            return new ClientMessage(authed(), "Current games on the server:\n", mapGames((GameDAO[]) msg.data()));
         } else {
             return new ClientMessage(authed(), "A client-side error has occured", null);
         }
     }
     private boolean authed() {
         return authToken != null;
+    }
+    private GameDAO[] mapGames(GameDAO[] games) {
+        listToID = new HashMap<>();
+        List<GameDAO> orderedGames = new ArrayList<>();
+        int i = 1;
+        for (GameDAO game : games) {
+            listToID.put(i, game.gameID());
+            orderedGames.add(new GameDAO(i, game.whiteUsername(), game.blackUsername(), game.gameName(), game.game()));
+            i++;
+        }
+        return (GameDAO[]) orderedGames.toArray(GameDAO[]::new);
     }
 }

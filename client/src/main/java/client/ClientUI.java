@@ -34,6 +34,7 @@ public class ClientUI {
                 case UNAUTHENTICATED -> {
                     System.out.println("Welcome to the chess app. Enter commands to play. Enter 'help' to get help");
                     String input = stdin.nextLine();
+                    System.out.println(ERASE_SCREEN);
                     String command = new Scanner(input).next();
                     if (command == null) {
                         System.out.println("Invalid command. Try again\n");
@@ -58,6 +59,7 @@ public class ClientUI {
                 case AUTHENTICATED -> {
                     System.out.println("You're logged in. Enter commands to play. Enter 'help' to see available commands.");
                     String input = stdin.nextLine();
+                    System.out.println(ERASE_SCREEN);
                     String command = new Scanner(input).next();
                     if (command == null) {
                         System.out.println("Invalid command, try again\n");
@@ -106,16 +108,26 @@ public class ClientUI {
     private String printGame(GameDAO game) {
         StringBuilder str = new StringBuilder();
         ChessGame.TeamColor color = game.game().getTeamTurn();
-        str.append("------ Game Name: ").append(game.gameName()).append(" ------\n");
-        str.append("Game ID: ").append(game.gameID()).append('\n');
-        str.append("White player: ").append(game.whiteUsername()).append('\n');
-        str.append("Black player: ").append(game.blackUsername()).append('\n');
+        str.append(SET_TEXT_COLOR_BLUE).append(SET_TEXT_BLINKING).append(SET_TEXT_BOLD).append("------ Game # ").append(game.gameID()).append(" - ")
+                .append(game.gameName()).append(" ------\n").append(RESET_TEXT_BOLD_FAINT).append(RESET_TEXT_BLINKING).append(RESET_TEXT_COLOR);
+        //str.append("Game ID: ").append(game.gameID()).append('\n');
+        if (game.whiteUsername() == null) {
+            str.append("White player: -- open -- \n");
+        } else {
+            str.append("White player: ").append(game.whiteUsername()).append('\n');
+        }
+        if (game.blackUsername() == null) {
+            str.append("Black player: -- open -- \n");
+        } else {
+            str.append("Black player: ").append(game.blackUsername()).append('\n');
+        }
         if (game.game().getTeamTurn() == WHITE) {
             str.append("White's turn\n");
         } else {
             str.append("Black's turn\n");
         }
         if (color == WHITE) {
+            str.append("  \u2009A \u3000B \u3000C \u3000D \u3000E \u3000F \u3000G \u3000H  \n");
             for (int rank = 8; rank >= 1; rank -= 1) {
                 str.append(rank).append(" ");
                 for (int file = 1; file <= 8; file += 1) {
@@ -126,10 +138,11 @@ public class ClientUI {
                     }
                     str.append(printSpace(game, rank, file));
                 }
-                str.append(SET_BG_COLOR_BLACK + " \n");
+                str.append(SET_BG_COLOR_BLACK + " ").append(rank).append('\n');
             }
             str.append("  \u2009A \u3000B \u3000C \u3000D \u3000E \u3000F \u3000G \u3000H  \n");
         } else {
+            str.append("   H\u3000 G\u3000 F\u3000 E\u3000 D\u3000 C\u3000 B\u3000 A  \n");
             for (int rank = 1; rank <= 8; rank += 1) {
                 str.append(rank).append(" ");
                 for (int file = 8; file >= 1; file -= 1) {
@@ -140,7 +153,7 @@ public class ClientUI {
                     }
                     str.append(printSpace(game, rank, file));
                 }
-                str.append(SET_BG_COLOR_BLACK + " \n");
+                str.append(SET_BG_COLOR_BLACK + " ").append(rank).append('\n');
             }
             str.append("   H\u3000 G\u3000 F\u3000 E\u3000 D\u3000 C\u3000 B\u3000 A  \n");
         }

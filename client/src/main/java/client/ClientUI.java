@@ -49,11 +49,11 @@ public class ClientUI {
                         try {
                             ChessGame game = new ChessGame();
                             game.makeMove(new ChessMove(new ChessPosition(2, 4), new ChessPosition(4, 4), null));
-                            System.out.println(printGame(new GameDAO(10, "", "", "", game)));
+                            System.out.println(printGame(new GameDAO(10, null, null, "Test", game)));
                         } catch (InvalidMoveException e) {}
                     }
 
-                    THE CODE ABOVE WAS ADDED FOR TESTING */
+                    /* THE CODE ABOVE WAS ADDED FOR TESTING */
                 }
                 case AUTHENTICATED -> {
                     System.out.println("You're logged in. Enter commands to play. Enter 'help' to see available commands.");
@@ -73,8 +73,8 @@ public class ClientUI {
                         result = client.createGame(input);
                     } else if (command.equals("join")) {
                         result = client.joinGame(input);
-                    } else if (command.equals("observe")) {
-
+                    } else if (command.equals("list")) {
+                        result = client.listGames();
                     };
                 }
             }
@@ -83,13 +83,36 @@ public class ClientUI {
             } else {
                 state = UserState.UNAUTHENTICATED;
             }
-            System.out.println(result.toPrint());
+            System.out.println(printResult(result));
         }
     }
 
+    private String printResult(ClientMessage msg) {
+        StringBuilder str = new StringBuilder();
+        if (msg.toPrint() == null) {
+            return "";
+        }
+        str.append(msg.toPrint()).append('\n');
+        if (msg.gamesToPrint() == null) {
+            return str.toString();
+        }
+        for (GameDAO game: msg.gamesToPrint()) {
+            str.append(printGame(game)).append('\n');
+        }
+        return str.toString();
+    }
     private String printGame(GameDAO game) {
         StringBuilder str = new StringBuilder();
         ChessGame.TeamColor color = game.game().getTeamTurn();
+        str.append("------ Game Name: ").append(game.gameName()).append(" ------\n");
+        str.append("Game ID: ").append(game.gameID()).append('\n');
+        str.append("White player: ").append(game.whiteUsername()).append('\n');
+        str.append("Black player: ").append(game.blackUsername()).append('\n');
+        if (game.game().getTeamTurn() == WHITE) {
+            str.append("White's turn\n");
+        } else {
+            str.append("Black's turn\n");
+        }
         if (color == WHITE) {
             for (int rank = 8; rank >= 1; rank -= 1) {
                 str.append(rank).append(" ");

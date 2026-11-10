@@ -138,6 +138,27 @@ public class ServerFacade {
         }
     }
 
+    public ServerMessage listGames(String authToken) {
+        record Response(GameDAO[] games) {};
+        try {
+            HttpRequest req = HttpRequest.newBuilder()
+                    .uri(new URI(uriStr("/game")))
+                    .timeout(java.time.Duration.ofMillis(5000))
+                    .GET()
+                    .header("authorization", authToken)
+                    .build();
+            var res = httpClient.send(req, HttpResponse.BodyHandlers.ofString());
+            if (res.statusCode() == 200) {
+                Response games = serializer.fromJson(res.body(), Response.class);
+                return new ServerMessage(games.games());
+            } else {
+                return errorHandler(res);
+            }
+        } catch (Exception e) {
+            return new ServerMessage("Timeout or Client-side Error");
+        }
+    }
+
     private String uriStr(String path) {
         return String.format(Locale.getDefault(), "http://%s:%d%s", host, port, path);
     }

@@ -117,6 +117,10 @@ public class ChessClient {
             return new ClientMessage(authed(), "Bad command format. Type 'help' for more info", null);
         }
     }
+    public ClientMessage listGames() {
+        ServerMessage result = webClient.listGames(authToken);
+        return resolveResponse(result);
+    }
     private ClientMessage resolveResponse(ServerMessage msg) {
         if (msg.data().getClass() == String.class) {
             String err = (String) msg.data();
@@ -132,6 +136,8 @@ public class ChessClient {
             return new ClientMessage(authed(), out, null);
         } else if (msg.data().getClass() == Integer.class) {
             return new ClientMessage(authed(), String.format("New game created with ID %d", msg.data()), null);
+        } else if (msg.data().getClass() == GameDAO[].class) {
+            return new ClientMessage(authed(), "Current games on the server:\n", (GameDAO[]) msg.data());
         } else {
             return new ClientMessage(authed(), "A client-side error has occured", null);
         }

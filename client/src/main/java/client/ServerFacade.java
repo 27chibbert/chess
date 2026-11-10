@@ -13,7 +13,7 @@ import java.util.Locale;
 import com.google.gson.Gson;
 
 public class ServerFacade {
-    private static final HttpClient httpClient = HttpClient.newHttpClient();
+    private static HttpClient httpClient = HttpClient.newHttpClient();
     private final String host = "localhost";
     private final int port;
     private static Gson serializer = new Gson();

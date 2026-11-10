@@ -21,12 +21,12 @@ public class ChessClient {
     }
 
     private ClientUI ui;
-    private static final ServerFacade webClient = new ServerFacade(0);
+    private static ServerFacade webClient = new ServerFacade(0);
     private UserState state;
     private String username;
     private String authToken;
     private HashMap<Integer, Integer> listToID;
-    private static final Logger logger = Logger.getLogger("Server Log");
+    private static Logger logger = Logger.getLogger("Server Log");
 
     BiFunction<String, Integer, String> getToken = (input, n) -> {
         if (input == null) {

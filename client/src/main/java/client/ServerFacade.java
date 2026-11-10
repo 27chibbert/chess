@@ -15,18 +15,12 @@ import com.google.gson.Gson;
 public class ServerFacade {
     private static final HttpClient httpClient = HttpClient.newHttpClient();
     private final String host = "localhost";
-    private final int port = 8080;
+    private final int port;
     private static Gson serializer = new Gson();
-    public ServerFacade() {
-
+    public ServerFacade(int port) {
+        this.port = port;
     }
 
-    public enum Responses {
-        AUTH,
-        GAME,
-        GAMES,
-        ERROR
-    }
     public ServerMessage register(UserDAO user) {
         try {
             var body = serializer.toJson(user);
@@ -165,9 +159,6 @@ public class ServerFacade {
 
     private ServerMessage errorHandler(HttpResponse res) {
         switch (res.statusCode()) {
-            case 0 -> {
-                return new ServerMessage("Recieved no response");
-            }
             case 400 -> {
                 return new ServerMessage("Bad Request");
             }

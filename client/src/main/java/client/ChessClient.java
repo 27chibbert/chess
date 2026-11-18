@@ -3,6 +3,7 @@ package client;
 import chess.ChessGame;
 import records.*;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
@@ -43,10 +44,10 @@ public class ChessClient {
 
     public ChessClient() {
         webClient = new ServerFacade(this, 8080);
-        webSocketFacade = new WebSocketFacade("http://localhost:8080", this);
+        webSocketFacade = null;
 
         try {
-            FileHandler fd = new FileHandler("logs/server.log", true);
+            FileHandler fd = new FileHandler("logs/client.log", true);
             fd.setFormatter(new SimpleFormatter());
             LOGGER.addHandler(fd);
             LOGGER.setUseParentHandlers(false);
@@ -134,6 +135,7 @@ public class ChessClient {
             }
             GameDAO[] toPrint = {joinedGame};
             if (result.data() == null) {
+
                 return new ClientMessage(authed(), String.format("Successfully joined game %d", gameID), toPrint);
             }
             return resolveResponse(result);
@@ -164,6 +166,7 @@ public class ChessClient {
                 if (game.gameID() == gameID) {
                     GameDAO[] gameToPrint = { game };
                     LOGGER.info("Attempting to observe game " + gameID + " with session ID " + authToken);
+                    webSocketFacade = new WebSocketFacade("http://localhost:8080", this);
                     webSocketFacade.observeGame(authToken, gameID);
                     return new ClientMessage(authed(), "Observing game", gameToPrint);
                 }
@@ -173,6 +176,18 @@ public class ChessClient {
             return new ClientMessage(authed(), "Bad command format. Type 'help' for more info", null);
         }
     }
+    public void leaveGame() {
+        try {
+            webSocketFacade.session.close();
+        } catch (IOException e) {
+            LOGGER.warning("Failed to close websocket session");
+        }
+        webSocketFacade = null;
+    }
+    public void notify(String message) {
+        ui.notify(message);
+    }
+
     private ClientMessage resolveResponse(ServerMessage msg) {
         if (msg.data().getClass() == String.class) {
             String err = (String) msg.data();

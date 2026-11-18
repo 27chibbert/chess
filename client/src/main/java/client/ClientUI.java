@@ -148,9 +148,17 @@ public class ClientUI {
 
             }
         }
+        client.leaveGame();
         return new ClientMessage(true, "Left game", null);
     }
 
+    public void notify(String notification) {
+        System.out.println(notification);
+    }
+
+    public void loadGame(GameDAO game) {
+        System.out.println(printGame(game, printAs));
+    }
 
     private String printResult(ClientMessage msg, ChessGame.TeamColor printAs) {
         StringBuilder str = new StringBuilder();

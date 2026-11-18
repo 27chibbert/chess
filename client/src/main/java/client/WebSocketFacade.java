@@ -53,14 +53,23 @@ public class WebSocketFacade extends Endpoint {
         ServerMessage msg = serializer.fromJson(message, ServerMessage.class);
         switch (msg.getServerMessageType()) {
             case LOAD_GAME -> {loadGame(message);}
-            case ERROR -> {}
-            case NOTIFICATION -> {}
+            case ERROR -> {error(message);}
+            case NOTIFICATION -> {notify(message);}
         }
     }
 
+    private void notify(String notification) {
+        NotificationMessage msg = serializer.fromJson(notification, NotificationMessage.class);
+        client.notify(msg.getNotification());
+        LOGGER.info("Receieved notification message");
+    }
     private void loadGame(String message) {
         LoadGameMessage msg = serializer.fromJson(message, LoadGameMessage.class);
-
+        LOGGER.info("Received load game message");
+    }
+    private void error(String message) {
+        ErrorMessage msg = serializer.fromJson(message, ErrorMessage.class);
+        client.notify(String.format("Error: %s", msg.getError()));
     }
 
     public void observeGame(String authToken, int gameID) {

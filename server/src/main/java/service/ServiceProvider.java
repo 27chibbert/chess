@@ -32,7 +32,7 @@ public class ServiceProvider {
         }
     }
 
-    private AuthDAO authSession(String authToken) throws InvalidLoginException, DatabaseException {
+    public AuthDAO authSession(String authToken) throws InvalidLoginException, DatabaseException {
         if (authToken == null) {
             throw new InvalidLoginException("Invalid credentials");
         }

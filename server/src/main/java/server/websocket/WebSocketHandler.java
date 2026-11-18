@@ -47,7 +47,7 @@ public class WebSocketHandler implements WsConnectHandler, WsCloseHandler, WsMes
     public void handleConnect(WsConnectContext ctx) {
         ctx.enableAutomaticPings();
         connectionManager.add(ctx.session, null, null);
-        LOGGER.info("Started Websocket connection with session "  + ctx.header("authorization"));
+        //LOGGER.info("Started Websocket connection with session "  + ctx.header("authorization"));
     }
 
     @Override
@@ -78,6 +78,8 @@ public class WebSocketHandler implements WsConnectHandler, WsCloseHandler, WsMes
         try {
             LoadGameMessage message = new LoadGameMessage(LOAD_GAME, server.getGame(ctx.header("authorization"), command.getGameID()));
             ctx.session.getRemote().sendString(serializer.toJson(message));
+            String username = server.authSession(command.getAuthToken()).username();
+            connectionManager.notify(String.format("%s joined the game!", username), command.getGameID());
         } catch (InvalidLoginException e) {
             ErrorMessage message = new ErrorMessage(ERROR, "Invalid Credentials");
             ctx.session.getRemote().sendString(serializer.toJson(message));

@@ -8,5 +8,7 @@ public class ErrorMessage extends ServerMessage {
         message = errorMessage;
     }
 
-
+    public String getError() {
+        return message;
+    }
 }

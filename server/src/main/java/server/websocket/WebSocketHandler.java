@@ -76,7 +76,7 @@ public class WebSocketHandler implements WsConnectHandler, WsCloseHandler, WsMes
         ConnectCommand command = serializer.fromJson(ctx.message(), ConnectCommand.class);
         connectionManager.add(ctx.session, command.getGameID(), command.isPlaying());
         try {
-            LoadGameMessage message = new LoadGameMessage(LOAD_GAME, server.getGame(ctx.header("authorization"), command.getGameID()));
+            LoadGameMessage message = new LoadGameMessage(LOAD_GAME, server.getGame(command.getAuthToken(), command.getGameID()));
             ctx.session.getRemote().sendString(serializer.toJson(message));
             String username = server.authSession(command.getAuthToken()).username();
             connectionManager.notify(String.format("%s joined the game!", username), command.getGameID());

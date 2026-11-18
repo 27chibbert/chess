@@ -4,6 +4,8 @@ import chess.*;
 import records.ClientMessage;
 import records.GameDAO;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
@@ -120,11 +122,18 @@ public class ClientUI {
         Scanner stdin = new Scanner(System.in);
         while (!command.equals("leave")) {
             System.out.println(EMPTY + "Now seeing a live game. Type \"help\" for options");
-            command = stdin.next();
-            if (command.equals("help")) {
-                System.out.println("leave - Stop observing");
-            } else if (command.equals("redraw")) {
-                System.out.println(printGame(liveGame, WHITE));
+            command = stdin.nextLine();
+            if (command.length() >= 4 && command.substring(0, 4).equals("help")) {
+                printObserveHelp();
+            } else if (command.length() >= 6 && command.substring(0, 6).equals("redraw")) {
+                System.out.println(printGame(liveGame, WHITE, null));
+            } else if (command.length() >= 9 && command.substring(0, 9).equals("highlight")) {
+                ChessPosition highlight = getPosition(command);
+                if (highlight == null) {
+                    System.out.println("Bad command format. Write the square in this form 'a1'");
+                } else {
+                    System.out.println(printGame(liveGame, printAs, highlight));
+                }
             }
         }
         return new ClientMessage(true, "Stopped observing game", null);
@@ -138,7 +147,7 @@ public class ClientUI {
         while (!command.equals("leave")) {
             if (command.equals("help")) {
                 printGameHelp();
-            } else if (command.equals("redraw")) {
+            } else if (true) {
 
             } else if (command.equals("resign")) {
 
@@ -157,9 +166,33 @@ public class ClientUI {
     }
 
     public void loadGame(GameDAO game) {
-        System.out.println(printGame(game, printAs));
+        System.out.println(printGame(game, printAs, null));
     }
 
+    private ChessPosition getPosition(String command) {
+        if (command.length() < 12) {
+            return null;
+        }
+        char fileChar = command.toLowerCase().charAt(10);
+        int rank = 0;
+        try {
+            rank = Integer.parseInt(command.substring(11,12));
+        } catch (NumberFormatException e) {
+            return null;
+        }
+        int file = 0;
+        switch (fileChar) {
+            case 'a' -> file = 1;
+            case 'b' -> file = 2;
+            case 'c' -> file = 3;
+            case 'd' -> file = 4;
+            case 'e' -> file = 5;
+            case 'f' -> file = 6;
+            case 'g' -> file = 7;
+            case 'h' -> file = 8;
+        }
+        return new ChessPosition(rank, file);
+    }
     private String printResult(ClientMessage msg, ChessGame.TeamColor printAs) {
         StringBuilder str = new StringBuilder();
         if (msg.toPrint() == null) {
@@ -170,13 +203,14 @@ public class ClientUI {
             return str.toString();
         }
         for (GameDAO game: msg.gamesToPrint()) {
-            str.append(printGame(game, printAs)).append('\n');
+            str.append(printGame(game, printAs, null)).append('\n');
         }
         return str.toString();
     }
-    private String printGame(GameDAO game, ChessGame.TeamColor printAs) {
+    private String printGame(GameDAO game, ChessGame.TeamColor printAs, ChessPosition highlight) {
         StringBuilder str = new StringBuilder();
         ChessGame.TeamColor color = game.game().getTeamTurn();
+        Collection<ChessPosition> squares = new ArrayList<>();
         if (printAs == null) {
             printAs = game.game().getTeamTurn();
         }
@@ -197,16 +231,18 @@ public class ClientUI {
         } else {
             str.append("Black's turn\n");
         }
+        if (highlight != null) {
+            Collection<ChessMove> moves = game.game().validMoves(highlight);
+            for (ChessMove move : moves) {
+                squares.add(move.getEndPosition());
+            }
+        }
         if (printAs == WHITE) {
             str.append("  \u2009A \u3000B \u3000C \u3000D \u3000E \u3000F \u3000G \u3000H  \n");
             for (int rank = 8; rank >= 1; rank -= 1) {
                 str.append(rank).append(" ");
                 for (int file = 1; file <= 8; file += 1) {
-                    if ((file + rank) % 2 == 0) {
-                        str.append(SET_BG_COLOR_DARK_GREY);
-                    } else {
-                        str.append(SET_BG_COLOR_LIGHT_GREY);
-                    }
+                    colorSpace(str, rank, file, squares, highlight, printAs);
                     str.append(printSpace(game, rank, file));
                 }
                 str.append(SET_BG_COLOR_BLACK + " ").append(rank).append('\n');
@@ -217,11 +253,7 @@ public class ClientUI {
             for (int rank = 1; rank <= 8; rank += 1) {
                 str.append(rank).append(" ");
                 for (int file = 8; file >= 1; file -= 1) {
-                    if ((file + rank - 1) % 2 == 0) {
-                        str.append(SET_BG_COLOR_DARK_GREY);
-                    } else {
-                        str.append(SET_BG_COLOR_LIGHT_GREY);
-                    }
+                    colorSpace(str, rank, file, squares, highlight, printAs);
                     str.append(printSpace(game, rank, file));
                 }
                 str.append(SET_BG_COLOR_BLACK + " ").append(rank).append('\n');
@@ -280,6 +312,26 @@ public class ClientUI {
         }
         return "BROKEN";
     }
+    private void colorSpace(StringBuilder str, int rank, int file, Collection<ChessPosition> squares, ChessPosition highlight, ChessGame.TeamColor color) {
+        if (highlight != null && rank == highlight.getRank() && file == highlight.getFile()) {
+            str.append(SET_BG_COLOR_BLACK);
+            return;
+        }
+        int offset = 0;
+        if (color == BLACK) {
+            offset = 1;
+        }
+        if ((file + rank - offset) % 2 == 0 && squares.contains(new ChessPosition(rank, file))) {
+            str.append(SET_BG_COLOR_DARK_GREEN);
+        } else if ((file + rank - offset) % 2 == 0 && !squares.contains(new ChessPosition(rank, file))) {
+            str.append(SET_BG_COLOR_DARK_GREY);
+        } else if (squares.contains(new ChessPosition(rank, file))) {
+            str.append(SET_BG_COLOR_GREEN);
+        } else {
+            str.append(SET_BG_COLOR_LIGHT_GREY);
+        }
+    }
+
     private void printHelp() {
         System.out.println(
                 "Commands available:\n" +
@@ -300,6 +352,11 @@ public class ClientUI {
                         "'join <ID> [WHITE|BLACK]' - Join a game and play\n" +
                         "'observe <ID>' - Observe an active game\n"
         );
+    }
+    private void printObserveHelp() {
+        System.out.println("'leave' - Stop observing\n" +
+                "'redraw' - Redraw the current chess board\n" +
+                "'highlight <square>' - Show the moves the piece on the given square can do. Example: highlight e2\n");
     }
     private void printGameHelp() {
         System.out.println(

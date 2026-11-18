@@ -88,6 +88,7 @@ public class ClientUI {
                             } else {
                                 printAs = BLACK;
                             }
+                            result = playingLiveLoop(result, printAs);
                         }
                     } else if (command.equals("list")) {
                         result = client.listGames();
@@ -122,9 +123,32 @@ public class ClientUI {
             command = stdin.next();
             if (command.equals("help")) {
                 System.out.println("leave - Stop observing");
+            } else if (command.equals("redraw")) {
+                System.out.println(printGame(liveGame, WHITE));
             }
         }
         return new ClientMessage(true, "Stopped observing game", null);
+    }
+
+    public ClientMessage playingLiveLoop(ClientMessage print, ChessGame.TeamColor printAs) {
+        liveGame = print.gamesToPrint()[0];
+        System.out.println(printResult(print, printAs));
+        Scanner stdin = new Scanner(System.in);
+        String command = "";
+        while (!command.equals("leave")) {
+            if (command.equals("help")) {
+                printGameHelp();
+            } else if (command.equals("redraw")) {
+
+            } else if (command.equals("resign")) {
+
+            } else if (command.equals("move")) {
+
+            } else if (command.equals("highlight")) {
+
+            }
+        }
+        return new ClientMessage(true, "Left game", null);
     }
 
 
@@ -267,6 +291,17 @@ public class ClientUI {
                         "'list' - See all existing games on the server\n" +
                         "'join <ID> [WHITE|BLACK]' - Join a game and play\n" +
                         "'observe <ID>' - Observe an active game\n"
+        );
+    }
+    private void printGameHelp() {
+        System.out.println(
+                "Commands available\n" +
+                        "'help' - see this menu\n" +
+                        "'redraw' - redraw the chess board\n" +
+                        "'leave' - leave the game (does not resign)\n" +
+                        "'resign' - resign the game (does not leave)\n" +
+                        "'move' <start square> <end square> - do a move, example: 'move e2 e4'\n" +
+                        "'highlight <square> - shows all possible moves of the piece on that square"
         );
     }
 }

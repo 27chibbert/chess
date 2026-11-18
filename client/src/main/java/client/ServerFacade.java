@@ -17,7 +17,10 @@ public class ServerFacade {
     private final String host = "localhost";
     private final int port;
     private static Gson serializer = new Gson();
-    public ServerFacade(int port) {
+    private ChessClient client;
+
+    public ServerFacade(ChessClient client, int port) {
+        this.client = client;
         this.port = port;
     }
 

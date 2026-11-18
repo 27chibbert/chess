@@ -1,0 +1,75 @@
+package client;
+
+import com.google.gson.Gson;
+import jakarta.websocket.*;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+
+import websocket.commands.ConnectCommand;
+import websocket.commands.UserGameCommand;
+import websocket.messages.*;
+
+import java.util.logging.Logger;
+import java.util.logging.FileHandler;
+import java.util.logging.SimpleFormatter;
+
+public class WebSocketFacade extends Endpoint {
+    ChessClient client;
+    Session session;
+    private static Gson serializer = new Gson();
+    private static final Logger LOGGER = Logger.getLogger("Client Websocket Log");
+
+    public WebSocketFacade(String url, ChessClient client) {
+        this.client = client;
+        try {
+            url = url.replace("http", "ws");
+            URI socketURI = new URI(url + "/ws");
+            WebSocketContainer container = ContainerProvider.getWebSocketContainer();
+            this.session = container.connectToServer(this, socketURI);
+
+            this.session.addMessageHandler(new MessageHandler.Whole<String>() {
+                @Override
+                public void onMessage(String message) {
+                    handleMessage(message);
+                }
+            });
+        } catch (DeploymentException | IOException | URISyntaxException e) {
+            throw new RuntimeException("Something broke. Implement this better later");
+        }
+        try {
+            FileHandler fd = new FileHandler("logs/clientWebSocket.log", true);
+            fd.setFormatter(new SimpleFormatter());
+            LOGGER.addHandler(fd);
+            LOGGER.setUseParentHandlers(false);
+        } catch (Exception e) {
+            System.out.println("Server logger failed to start");
+        }
+    }
+    @Override
+    public void onOpen(Session session, EndpointConfig endpointConfig) {}
+
+    private void handleMessage(String message) {
+        ServerMessage msg = serializer.fromJson(message, ServerMessage.class);
+        switch (msg.getServerMessageType()) {
+            case LOAD_GAME -> {loadGame(message);}
+            case ERROR -> {}
+            case NOTIFICATION -> {}
+        }
+    }
+
+    private void loadGame(String message) {
+        LoadGameMessage msg = serializer.fromJson(message, LoadGameMessage.class);
+
+    }
+
+    public void observeGame(String authToken, int gameID) {
+        try {
+            ConnectCommand command = new ConnectCommand(UserGameCommand.CommandType.CONNECT, authToken, gameID, false);
+            this.session.getBasicRemote().sendText(serializer.toJson(command));
+            LOGGER.info("Sent observe game ws request to server with id " + gameID + " and session " + authToken);
+        } catch (Exception e) {
+            throw new RuntimeException("Observe game websocket broke");
+        }
+    }
+}

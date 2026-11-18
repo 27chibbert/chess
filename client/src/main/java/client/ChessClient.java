@@ -7,22 +7,27 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.HashMap;
+import java.util.logging.Logger;
+import java.util.logging.FileHandler;
+import java.util.logging.SimpleFormatter;
 
 public class ChessClient {
     enum UserState {
         UNAUTHENTICATED,
         AUTHENTICATED,
-        HELP,
-        AUTHENTICATEDHELP,
-        EXIT
+        OBSERVING,
+        PLAYING
     }
 
     private ClientUI ui;
-    private static ServerFacade webClient = new ServerFacade(8080);
+    private static ServerFacade webClient;
     private UserState state;
     private String username;
     private String authToken;
     private HashMap<Integer, Integer> listToID;
+    private WebSocketFacade webSocketFacade;
+    private static final Logger LOGGER = Logger.getLogger("Client Log");
+
 
     BiFunction<String, Integer, String> getToken = (input, n) -> {
         if (input == null) {
@@ -37,7 +42,17 @@ public class ChessClient {
     };
 
     public ChessClient() {
+        webClient = new ServerFacade(this, 8080);
+        webSocketFacade = new WebSocketFacade("http://localhost:8080", this);
 
+        try {
+            FileHandler fd = new FileHandler("logs/server.log", true);
+            fd.setFormatter(new SimpleFormatter());
+            LOGGER.addHandler(fd);
+            LOGGER.setUseParentHandlers(false);
+        } catch (Exception e) {
+            System.out.println("Server logger failed to start");
+        }
     }
 
     public void startClient() {
@@ -148,6 +163,8 @@ public class ChessClient {
             for (GameDAO game: games) {
                 if (game.gameID() == gameID) {
                     GameDAO[] gameToPrint = { game };
+                    LOGGER.info("Attempting to observe game " + gameID + " with session ID " + authToken);
+                    webSocketFacade.observeGame(authToken, gameID);
                     return new ClientMessage(authed(), "Observing game", gameToPrint);
                 }
             }

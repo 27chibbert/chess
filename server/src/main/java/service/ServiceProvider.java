@@ -79,6 +79,10 @@ public class ServiceProvider {
         }
     }
 
+    public GameDAO getGame(String authToken, int gameID) throws InvalidLoginException, DataAccessException, DatabaseException {
+        AuthDAO identity = authSession(authToken);
+        return db.getGame(gameID);
+    }
     public void clear() throws DatabaseException {
         db.clearAll();
     }

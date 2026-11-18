@@ -4,6 +4,7 @@ import chess.*;
 import records.ClientMessage;
 import records.GameDAO;
 
+import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 import static chess.ChessGame.TeamColor.BLACK;
@@ -12,32 +13,42 @@ import static ui.EscapeSequences.*;
 
 public class ClientUI {
 
-    enum UserState {
+    public enum UserState {
         UNAUTHENTICATED,
         AUTHENTICATED,
-        EXIT
+        OBSERVING,
+        PLAYING
     }
 
     private UserState state;
     private ChessClient client;
+    private ChessGame.TeamColor printAs;
+    private GameDAO liveGame;
 
     public ClientUI(ChessClient client) {
         state = UserState.UNAUTHENTICATED;
         this.client = client;
         System.out.println(SET_BG_COLOR_BLACK);
+        printAs = null;
+        liveGame = null;
     }
 
     public void repl() {
         while (true) {
             ClientMessage result = new ClientMessage(false, "", null);
-            ChessGame.TeamColor printAs = null;
+            printAs = null;
             Scanner stdin = new Scanner(System.in);
             switch (state) {
                 case UNAUTHENTICATED -> {
                     System.out.println("Welcome to the chess app. Enter commands to play. Enter 'help' to get help");
                     String input = stdin.nextLine();
-                    System.out.println(ERASE_SCREEN);
-                    String command = new Scanner(input).next();
+                    //System.out.println(ERASE_SCREEN);
+                    String command = null;
+                    try {
+                        command = new Scanner(input).next();
+                    } catch (NoSuchElementException e) {
+                        command = null;
+                    }
                     if (command == null) {
                         System.out.println("Invalid command. Try again\n");
                     } else if (command.equals("help")) {
@@ -48,6 +59,8 @@ public class ClientUI {
                         result = client.login(input);
                     } else if (command.equals("quit")) {
                         return;
+                    } else {
+                        System.out.println("Invalid command.");
                     }
                 }
                 case AUTHENTICATED -> {
@@ -79,7 +92,14 @@ public class ClientUI {
                     } else if (command.equals("list")) {
                         result = client.listGames();
                     } else if (command.equals("observe")) {
+                        state = ClientUI.UserState.OBSERVING;
+                        printAs = WHITE;
                         result = client.observeGame(input);
+                        if (result.gamesToPrint() == null) {
+                            result = new ClientMessage(true, "No game has that number", null);
+                        } else {
+                            result = observeLiveLoop(result);
+                        }
                     };
                 }
             }
@@ -91,6 +111,22 @@ public class ClientUI {
             System.out.println(printResult(result, printAs));
         }
     }
+
+    public ClientMessage observeLiveLoop(ClientMessage print) {
+        liveGame = print.gamesToPrint()[0];
+        System.out.println(printResult(print, WHITE));
+        String command = "";
+        Scanner stdin = new Scanner(System.in);
+        while (!command.equals("leave")) {
+            System.out.println(EMPTY + "Now seeing a live game. Type \"help\" for options");
+            command = stdin.next();
+            if (command.equals("help")) {
+                System.out.println("leave - Stop observing");
+            }
+        }
+        return new ClientMessage(true, "Stopped observing game", null);
+    }
+
 
     private String printResult(ClientMessage msg, ChessGame.TeamColor printAs) {
         StringBuilder str = new StringBuilder();

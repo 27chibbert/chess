@@ -90,7 +90,7 @@ public class ClientUI {
                             } else {
                                 printAs = BLACK;
                             }
-                            result = playingLiveLoop(result, printAs);
+                            result = liveLoop(result, true);
                         }
                     } else if (command.equals("list")) {
                         result = client.listGames();
@@ -101,7 +101,7 @@ public class ClientUI {
                         if (result.gamesToPrint() == null) {
                             result = new ClientMessage(true, "No game has that number", null);
                         } else {
-                            result = observeLiveLoop(result);
+                            result = liveLoop(result, false);
                         }
                     };
                 }
@@ -115,7 +115,7 @@ public class ClientUI {
         }
     }
 
-    public ClientMessage observeLiveLoop(ClientMessage print) {
+    public ClientMessage liveLoop(ClientMessage print, boolean playing) {
         liveGame = print.gamesToPrint()[0];
         System.out.println(printResult(print, WHITE));
         String command = "";
@@ -124,16 +124,35 @@ public class ClientUI {
             System.out.println(EMPTY + "Now seeing a live game. Type \"help\" for options");
             command = stdin.nextLine();
             if (command.length() >= 4 && command.substring(0, 4).equals("help")) {
-                printObserveHelp();
+                if (playing) {
+                    printGameHelp();
+                } else {
+                    printObserveHelp();
+                }
             } else if (command.length() >= 6 && command.substring(0, 6).equals("redraw")) {
                 System.out.println(printGame(liveGame, WHITE, null));
-            } else if (command.length() >= 9 && command.substring(0, 9).equals("highlight")) {
-                ChessPosition highlight = getPosition(command);
+            } else if (command.length() >= 12 && command.substring(0, 9).equals("highlight")) {
+                ChessPosition highlight = getPositionFromCommand(command.substring(10,12));
                 if (highlight == null) {
                     System.out.println("Bad command format. Write the square in this form 'a1'");
                 } else {
                     System.out.println(printGame(liveGame, printAs, highlight));
                 }
+            } else if (playing && command.length() >= 10 && command.substring(0,4).equals("move")) {
+                ChessPosition start = getPositionFromCommand(command.substring(5,7));
+                ChessPosition end = getPositionFromCommand(command.substring(8,10));
+                if (start == null || end == null) {
+                    System.out.println("Bad command format. Write the square in this form 'a1'");
+                    continue;
+                }
+                ChessMove moveToPlay = new ChessMove(start, end, null);
+                if (liveGame.game().validMoves(start).contains(moveToPlay)) {
+                    System.out.println("Making move");
+                } else {
+                    System.out.println("Invalid move");
+                }
+            } else if (playing && command.length() >= 6 && command.substring(0,6).equals("resign")) {
+
             }
         }
         return new ClientMessage(true, "Stopped observing game", null);
@@ -169,14 +188,14 @@ public class ClientUI {
         System.out.println(printGame(game, printAs, null));
     }
 
-    private ChessPosition getPosition(String command) {
-        if (command.length() < 12) {
+    private ChessPosition getPositionFromCommand(String str) {
+        if (str.length() < 2) {
             return null;
         }
-        char fileChar = command.toLowerCase().charAt(10);
+        char fileChar = str.toLowerCase().charAt(0);
         int rank = 0;
         try {
-            rank = Integer.parseInt(command.substring(11,12));
+            rank = Integer.parseInt(str.substring(1,2));
         } catch (NumberFormatException e) {
             return null;
         }

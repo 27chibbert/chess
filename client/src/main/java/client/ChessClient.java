@@ -20,6 +20,7 @@ public class ChessClient {
         PLAYING
     }
 
+    private GameDAO liveGame;
     private ClientUI ui;
     private static ServerFacade webClient;
     private UserState state;
@@ -187,7 +188,9 @@ public class ChessClient {
     public void notify(String message) {
         ui.notify(message);
     }
-
+    public GameDAO getLiveGame() {
+        return liveGame;
+    }
     private ClientMessage resolveResponse(ServerMessage msg) {
         if (msg.data().getClass() == String.class) {
             String err = (String) msg.data();

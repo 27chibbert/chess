@@ -119,7 +119,19 @@ public class WebSocketHandler implements WsConnectHandler, WsCloseHandler, WsMes
     private void messageLeaveGame(WsMessageContext ctx) throws IOException {
         try {
             ResignOrLeaveGameCommand command = serializer.fromJson(ctx.message(), ResignOrLeaveGameCommand.class);
-            server.leaveGame(command.getAuthToken(), command.getColor(), command.getGameID());
+            GameDAO game = server.getGame(command.getAuthToken(), command.getGameID());
+            String username = server.authSession(command.getAuthToken()).username();
+            if ((game.whiteUsername() != null && game.whiteUsername().equals(username)) ||
+                    (game.blackUsername() != null && game.blackUsername().equals(username))) {
+                ChessGame.TeamColor color = server.leaveGame(command.getAuthToken(), command.getColor(), command.getGameID());
+                if (color == ChessGame.TeamColor.WHITE) {
+                    connectionManager.notify("White has left the game", command.getGameID(), command.getAuthToken());
+                } else {
+                    connectionManager.notify("Black has left the game", command.getGameID(), command.getAuthToken());
+                }
+            } else {
+                connectionManager.notify("An observer has left the game", command.getGameID(), command.getAuthToken());
+            }
             connectionManager.remove(ctx.session);
         } catch (InvalidLoginException e) {
             ErrorMessage msg = new ErrorMessage("Invalid credentials");
@@ -134,9 +146,9 @@ public class WebSocketHandler implements WsConnectHandler, WsCloseHandler, WsMes
             ResignOrLeaveGameCommand command = serializer.fromJson(ctx.message(), ResignOrLeaveGameCommand.class);
             server.resign(command.getAuthToken(), command.getGameID(), command.getColor());
             if (command.getColor() == ChessGame.TeamColor.WHITE) {
-                connectionManager.notify("White has resigned. Black has won!", command.getGameID(), command.getAuthToken());
+                connectionManager.notify("White has resigned. Black has won!", command.getGameID(), "null");
             } else {
-                connectionManager.notify("Black has resigned. White has won!", command.getGameID(), command.getAuthToken());
+                connectionManager.notify("Black has resigned. White has won!", command.getGameID(), "null");
             }
         } catch (InvalidLoginException e) {
             ErrorMessage msg = new ErrorMessage("Invalid credentials");

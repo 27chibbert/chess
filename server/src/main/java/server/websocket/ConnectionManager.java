@@ -62,4 +62,9 @@ public class ConnectionManager {
             }
         }
     }
+
+    public boolean isObserver(Session session) {
+        connectionType conn = connections.get(session);
+        return conn.playing();
+    }
 }

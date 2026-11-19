@@ -86,11 +86,18 @@ public class ServiceProvider {
         }
     }
 
-    public void leaveGame(String authToken, ChessGame.TeamColor color, int gameID) throws
+    public ChessGame.TeamColor leaveGame(String authToken, ChessGame.TeamColor ccolor, int gameID) throws
             InvalidLoginException, DataAccessException, DatabaseException {
         AuthDAO identity = authSession(authToken);
-        if (db.getGame(gameID) == null) {
+        ChessGame.TeamColor color = null;
+        GameDAO game = db.getGame(gameID);
+        if (game == null) {
             throw new DataAccessException("Bad request - invalid gameID");
+        }
+        if (game.whiteUsername() != null && game.whiteUsername().equals(identity.username())) {
+            color = ChessGame.TeamColor.WHITE;
+        } else if (game.blackUsername() != null && game.blackUsername().equals(identity.username())) {
+            color = ChessGame.TeamColor.BLACK;
         }
         if (color == null) {
             throw new DataAccessException("Bad request - invalid color");
@@ -98,13 +105,16 @@ public class ServiceProvider {
         if (!db.updateGame(null, color, gameID)) {
             throw new DataAccessException("Failed to remove user " + identity.username() + " from game");
         }
-
+        return color;
     }
     public void makeMove(String authToken, int gameID, ChessMove moveToPlay) throws
             InvalidLoginException, DataAccessException, DatabaseException, InvalidMoveException {
         AuthDAO identity = authSession(authToken);
         GameDAO gameD = db.getGame(gameID);
         ChessGame game = gameD.game();
+        if (game.getResigned() != null) {
+            throw new InvalidMoveException("Attempted to move after the game had ended from resigning");
+        }
         if ((game.getTeamTurn() == ChessGame.TeamColor.WHITE && gameD.whiteUsername().equals(identity.username())) ||
                 (game.getTeamTurn() == ChessGame.TeamColor.BLACK && gameD.blackUsername().equals(identity.username()))) {
             game.makeMove(moveToPlay);
@@ -118,9 +128,14 @@ public class ServiceProvider {
         AuthDAO identity = authSession(authToken);
         GameDAO gameD = db.getGame(gameID);
         ChessGame game = gameD.game();
-        if ((gameD.whiteUsername().equals(identity.username()) && color == ChessGame.TeamColor.WHITE) ||
-                (gameD.blackUsername().equals(identity.username()) && color == ChessGame.TeamColor.BLACK)) {
-            game.resign(color);
+        if (game.getResigned() != null) {
+            throw new InvalidMoveException("Attemped to resign in a game that had already ended");
+        }
+        if (gameD.whiteUsername().equals(identity.username())) {
+            game.resign(ChessGame.TeamColor.WHITE);
+            db.changeGame(game, gameID);
+        } else if (gameD.blackUsername().equals(identity.username())) {
+            game.resign(ChessGame.TeamColor.BLACK);
             db.changeGame(game, gameID);
         } else {
             throw new InvalidMoveException("User attempted resigning under the wrong color");

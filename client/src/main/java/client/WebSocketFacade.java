@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import records.GameDAO;
 import websocket.commands.ConnectCommand;
 import websocket.commands.LeaveGameCommand;
 import websocket.commands.MakeMoveCommand;
@@ -53,9 +54,9 @@ public class WebSocketFacade extends Endpoint {
     @Override
     public void onOpen(Session session, EndpointConfig endpointConfig) {}
 
-    public void observeGame(String authToken, int gameID) {
+    public void connectToGame(String authToken, int gameID, boolean playing) {
         try {
-            ConnectCommand command = new ConnectCommand(UserGameCommand.CommandType.CONNECT, authToken, gameID, false);
+            ConnectCommand command = new ConnectCommand(UserGameCommand.CommandType.CONNECT, authToken, gameID, playing);
             this.session.getBasicRemote().sendText(serializer.toJson(command));
             LOGGER.info("Sent observe game ws request to server with id " + gameID + " and session " + authToken);
         } catch (Exception e) {
@@ -63,9 +64,19 @@ public class WebSocketFacade extends Endpoint {
         }
     }
 
+    /*public void playGame(String authToken, int gameID) {
+        try {
+            ConnectCommand command = new ConnectCommand(UserGameCommand.CommandType.CONNECT, authToken, gameID, false);
+            this.session.getBasicRemote().sendText(serializer.toJson(command));
+            LOGGER.info("Sent observe game ws request to server with id " + gameID + " and session " + authToken);
+        } catch (Exception e) {
+            throw new RuntimeException("Observe game websocket broke");
+        }
+    }*/
+
     public void makeMove(String authToken, int gameID, ChessMove moveToPlay) {
         try {
-            MakeMoveCommand command = new MakeMoveCommand(UserGameCommand.CommandType.CONNECT, authToken, gameID, moveToPlay);
+            MakeMoveCommand command = new MakeMoveCommand(UserGameCommand.CommandType.MAKE_MOVE, authToken, gameID, moveToPlay);
             String message = serializer.toJson(command);
             this.session.getBasicRemote().sendText(message);
         } catch (IOException e) {
@@ -100,6 +111,7 @@ public class WebSocketFacade extends Endpoint {
     }
     private void loadGame(String message) {
         LoadGameMessage msg = serializer.fromJson(message, LoadGameMessage.class);
+        client.setLiveGame(msg.getGame());
         LOGGER.info("Received load game message");
     }
     private void error(String message) {

@@ -24,21 +24,21 @@ public class ClientUI {
 
     private UserState state;
     private ChessClient client;
-    private ChessGame.TeamColor printAs;
+    private ChessGame.TeamColor playAndPrintAs;
     private GameDAO liveGame;
 
     public ClientUI(ChessClient client) {
         state = UserState.UNAUTHENTICATED;
         this.client = client;
         System.out.println(SET_BG_COLOR_BLACK);
-        printAs = null;
+        playAndPrintAs = null;
         liveGame = null;
     }
 
     public void repl() {
         while (true) {
             ClientMessage result = new ClientMessage(false, "", null);
-            printAs = null;
+            playAndPrintAs = null;
             Scanner stdin = new Scanner(System.in);
             switch (state) {
                 case UNAUTHENTICATED -> {
@@ -86,9 +86,9 @@ public class ClientUI {
                         result = client.joinGame(input);
                         if (result.gamesToPrint() != null) {
                             if (input.toUpperCase().contains("WHITE")) {
-                                printAs = WHITE;
+                                playAndPrintAs = WHITE;
                             } else {
-                                printAs = BLACK;
+                                playAndPrintAs = BLACK;
                             }
                             result = liveLoop(result, true);
                         }
@@ -96,7 +96,7 @@ public class ClientUI {
                         result = client.listGames();
                     } else if (command.equals("observe")) {
                         state = ClientUI.UserState.OBSERVING;
-                        printAs = WHITE;
+                        playAndPrintAs = WHITE;
                         result = client.observeGame(input);
                         if (result.gamesToPrint() == null) {
                             result = new ClientMessage(true, "No game has that number", null);
@@ -111,7 +111,7 @@ public class ClientUI {
             } else {
                 state = UserState.UNAUTHENTICATED;
             }
-            System.out.println(printResult(result, printAs));
+            System.out.println(printResult(result, playAndPrintAs));
         }
     }
 
@@ -141,8 +141,20 @@ public class ClientUI {
             } else if (playing && command.length() >= 10 && command.substring(0,4).equals("move")) {
                 ChessPosition start = getPositionFromCommand(command.substring(5,7));
                 ChessPosition end = getPositionFromCommand(command.substring(8,10));
+                if (liveGame.game().getTeamTurn() != playAndPrintAs) {
+                    System.out.println("It's not your turn. You can not make moves yet");
+                    continue;
+                }
                 if (start == null || end == null) {
                     System.out.println("Bad command format. Write the square in this form 'a1'");
+                    continue;
+                }
+                if (liveGame.game().isInCheckmate(playAndPrintAs)) {
+                    System.out.println("Game is over. Can not make moves");
+                    continue;
+                }
+                if (liveGame.game().getBoard().getPiece(start) == null) {
+                    System.out.println("No piece is located on that square.");
                     continue;
                 }
                 ChessMove moveToPlay = new ChessMove(start, end, null);
@@ -162,34 +174,15 @@ public class ClientUI {
         return new ClientMessage(true, "Stopped observing game", null);
     }
 
-    public ClientMessage playingLiveLoop(ClientMessage print, ChessGame.TeamColor printAs) {
-        liveGame = print.gamesToPrint()[0];
-        System.out.println(printResult(print, printAs));
-        Scanner stdin = new Scanner(System.in);
-        String command = "";
-        while (!command.equals("leave")) {
-            if (command.equals("help")) {
-                printGameHelp();
-            } else if (true) {
-
-            } else if (command.equals("resign")) {
-
-            } else if (command.equals("move")) {
-
-            } else if (command.equals("highlight")) {
-
-            }
-        }
-        //client.leaveGame(playing);
-        return new ClientMessage(true, "Left game", null);
-    }
-
     public void notify(String notification) {
         System.out.println(notification);
     }
 
-    public void loadGame(GameDAO game) {
-        System.out.println(printGame(game, null));
+    public void loadGame() {
+        System.out.println(printGame(liveGame, null));
+    }
+    public void setLiveGame(GameDAO game) {
+        liveGame = game;
     }
 
     private ChessPosition getPositionFromCommand(String str) {
@@ -246,18 +239,13 @@ public class ClientUI {
         } else {
             str.append("Black player: ").append(game.blackUsername()).append('\n');
         }
-        if (game.game().getTeamTurn() == WHITE) {
-            str.append("White's turn\n");
-        } else {
-            str.append("Black's turn\n");
-        }
-        if (highlight != null) {
+        if (highlight != null && game.game().getBoard().getPiece(highlight) != null) {
             Collection<ChessMove> moves = game.game().validMoves(highlight);
             for (ChessMove move : moves) {
                 squares.add(move.getEndPosition());
             }
         }
-        if (printAs == null || printAs == WHITE) {
+        if (playAndPrintAs == null || playAndPrintAs == WHITE) {
             str.append("  \u2009A \u3000B \u3000C \u3000D \u3000E \u3000F \u3000G \u3000H  \n");
             for (int rank = 8; rank >= 1; rank -= 1) {
                 str.append(rank).append(" ");
@@ -279,6 +267,17 @@ public class ClientUI {
                 str.append(SET_BG_COLOR_BLACK + " ").append(rank).append('\n');
             }
             str.append("   H\u3000 G\u3000 F\u3000 E\u3000 D\u3000 C\u3000 B\u3000 A  \n");
+        }
+        if (game.game().isInCheckmate(WHITE)) {
+            str.append("White is in Checkmate! Black has won!");
+        } else if (game.game().isInCheckmate(BLACK)) {
+            str.append("Black is in Checkmate! White has won!");
+        } else {
+            if (game.game().getTeamTurn() == WHITE) {
+                str.append("White's turn\n");
+            } else {
+                str.append("Black's turn\n");
+            }
         }
         return str.toString();
     }
@@ -338,7 +337,7 @@ public class ClientUI {
             return;
         }
         int offset = 0;
-        if (printAs == BLACK) {
+        if (playAndPrintAs == BLACK) {
             offset = 1;
         }
         if ((file + rank - offset) % 2 == 0 && squares.contains(new ChessPosition(rank, file))) {

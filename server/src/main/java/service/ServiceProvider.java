@@ -5,13 +5,13 @@ import chess.InvalidMoveException;
 import dataaccess.*;
 import dataaccess.sql.DatabaseManager;
 import records.*;
+import server.websocket.WebSocketHandler;
 
 import java.util.List;
 
 public class ServiceProvider {
 
     private DataAccess db;
-
     public ServiceProvider() {
         db = new DatabaseManager();
     }

@@ -28,6 +28,7 @@ public class Server {
     public Server() {
         service = new ServiceProvider();
         webSocketHandler = new WebSocketHandler(service);
+
         javalin = Javalin.create(config -> config.staticFiles.add("web"));
         // Register your endpoints and exception handlers here - exception handlers handled in functions
         javalin.post("/user", ctx -> postUser(ctx));

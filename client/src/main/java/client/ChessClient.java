@@ -132,6 +132,7 @@ public class ChessClient {
             for (GameDAO game: games) {
                 if (game.gameID() == gameID) {
                     webSocketFacade = new WebSocketFacade("http://localhost:8080", this);
+                    webSocketFacade.connectToGame(authToken, gameID, true);
                     liveGame = game;
                     joinedGame = game;
                     break;
@@ -171,7 +172,7 @@ public class ChessClient {
                     GameDAO[] gameToPrint = { game };
                     LOGGER.info("Attempting to observe game " + gameID + " with session ID " + authToken);
                     webSocketFacade = new WebSocketFacade("http://localhost:8080", this);
-                    webSocketFacade.observeGame(authToken, gameID);
+                    webSocketFacade.connectToGame(authToken, gameID, false);
                     return new ClientMessage(authed(), "Observing game", gameToPrint);
                 }
             }
@@ -198,6 +199,11 @@ public class ChessClient {
     }
     public GameDAO getLiveGame() {
         return liveGame;
+    }
+    public void setLiveGame(GameDAO game) {
+        liveGame = game;
+        ui.setLiveGame(game);
+        ui.loadGame();
     }
     private ClientMessage resolveResponse(ServerMessage msg) {
         if (msg.data().getClass() == String.class) {

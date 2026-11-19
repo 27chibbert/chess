@@ -71,15 +71,15 @@ public class ServiceProvider {
             InvalidLoginException, DataAccessException, DatabaseException {
         AuthDAO identity = authSession(authToken);
         GameDAO game = db.getGame(gameID);
+        if (game == null) {
+            throw new DataAccessException("Bad request - invalid gameID");
+        }
         if (game.game().isInCheckmate(ChessGame.TeamColor.BLACK) || game.game().isInCheckmate(ChessGame.TeamColor.WHITE) ||
             game.game().getResigned() != null) {
             throw new AlreadyTakenException("User attempted to join a game that is already over");
         }
         if (color == null) {
             throw new DataAccessException("Bad request - invalid color");
-        }
-        if (db.getGame(gameID) == null) {
-            throw new DataAccessException("Bad request - invalid gameID");
         }
         if (!db.updateGame(identity.username(), color, gameID)) {
             throw new AlreadyTakenException("Invalid game edit. Username already filled");

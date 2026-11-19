@@ -127,10 +127,15 @@ public class ChessClient {
                 return new ClientMessage(authed(), "Bad command format. Color must be 'WHITE' or 'BLACK'", null);
             }
             ServerMessage result = webClient.joinGame(authToken, gameID, color);
+            if (result.data() != null && result.data().getClass() == String.class) {
+                return resolveResponse(result);
+            }
             GameDAO[] games = (GameDAO[]) webClient.listGames(authToken).data();
             GameDAO joinedGame = null;
             for (GameDAO game: games) {
-                if (game.gameID() == gameID) {
+                if (game.gameID() == gameID && game.game().getResigned() != null && !game.game().checkmatePresent()) {
+                    return new ClientMessage(authed(), "Error: Game has already ended", null);
+                } else if (game.gameID() == gameID && game.game().getResigned() == null) {
                     webSocketFacade = new WebSocketFacade("http://localhost:8080", this);
                     webSocketFacade.connectToGame(authToken, gameID, true);
                     liveGame = game;

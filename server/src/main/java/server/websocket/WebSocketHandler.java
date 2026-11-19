@@ -154,7 +154,7 @@ public class WebSocketHandler implements WsConnectHandler, WsCloseHandler, WsMes
             ErrorMessage msg = new ErrorMessage("Invalid credentials");
             ctx.session.getRemote().sendString(serializer.toJson(msg));
         } catch (InvalidMoveException e) {
-            ErrorMessage msg = new ErrorMessage("You attempted illegal resigning under the wrong color");
+            ErrorMessage msg = new ErrorMessage("You attempted illegal resigning");
             ctx.session.getRemote().sendString(serializer.toJson(msg, ErrorMessage.class));
         } catch (DatabaseException | DataAccessException e) {
             ErrorMessage msg = new ErrorMessage("Server error. Game ID likely invalid");

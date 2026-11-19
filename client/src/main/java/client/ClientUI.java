@@ -12,20 +12,11 @@ import static ui.EscapeSequences.*;
 
 public class ClientUI {
 
-    public enum UserState {
-        UNAUTHENTICATED,
-        AUTHENTICATED,
-        OBSERVING,
-        PLAYING
-    }
-
-    private UserState state;
     private ChessClient client;
     private ChessGame.TeamColor playAndPrintAs;
     private GameDAO liveGame;
 
     public ClientUI(ChessClient client) {
-        state = UserState.UNAUTHENTICATED;
         this.client = client;
         System.out.println(SET_BG_COLOR_BLACK);
         playAndPrintAs = null;
@@ -104,7 +95,6 @@ public class ClientUI {
             } else if (command.equals("list")) {
                 result = client.listGames();
             } else if (command.equals("observe")) {
-                state = ClientUI.UserState.OBSERVING;
                 playAndPrintAs = WHITE;
                 result = client.observeGame(input);
                 if (result.gamesToPrint() == null) {
@@ -113,12 +103,16 @@ public class ClientUI {
                     result = liveLoop(result, false);
                 }
             }
-            System.out.println(printResult(result, playAndPrintAs));
+            if (result.toPrint().isEmpty()) {
+                System.out.println("Invalid command");
+            } else {
+                System.out.println(printResult(result, playAndPrintAs));
+            }
         }
     }
     public ClientMessage liveLoop(ClientMessage print, boolean playing) {
         liveGame = print.gamesToPrint()[0];
-        System.out.println(printResult(print, WHITE));
+        //System.out.println(printResult(print, WHITE));
         String command = "";
         Scanner stdin = new Scanner(System.in);
         while (!command.equals("leave")) {

@@ -203,6 +203,9 @@ public class ChessGame {
         //throw new RuntimeException("Not implemented");
     }
 
+    public boolean checkmatePresent() {
+        return isInCheckmate(TeamColor.WHITE) || isInCheckmate(TeamColor.BLACK);
+    }
     /**
      * Determines if the given team is in stalemate, which here is defined as having
      * no valid moves while not in check.

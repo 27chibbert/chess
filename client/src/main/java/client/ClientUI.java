@@ -4,10 +4,7 @@ import chess.*;
 import records.ClientMessage;
 import records.GameDAO;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.NoSuchElementException;
-import java.util.Scanner;
+import java.util.*;
 
 import static chess.ChessGame.TeamColor.BLACK;
 import static chess.ChessGame.TeamColor.WHITE;
@@ -141,6 +138,7 @@ public class ClientUI {
             } else if (playing && command.length() >= 10 && command.substring(0,4).equals("move")) {
                 ChessPosition start = getPositionFromCommand(command.substring(5,7));
                 ChessPosition end = getPositionFromCommand(command.substring(8,10));
+                ChessPiece.PieceType promotion = null;
                 if (liveGame.game().getTeamTurn() != playAndPrintAs) {
                     System.out.println("It's not your turn. You can not make moves yet");
                     continue;
@@ -157,7 +155,10 @@ public class ClientUI {
                     System.out.println("No piece is located on that square.");
                     continue;
                 }
-                ChessMove moveToPlay = new ChessMove(start, end, null);
+                if ((end.getRank() == 1 || end.getRank() == 8) && liveGame.game().getBoard().getPiece(start).getPieceType() == ChessPiece.PieceType.PAWN) {
+                    promotion = promotionPrompt();
+                }
+                ChessMove moveToPlay = new ChessMove(start, end, promotion);
                 if (liveGame.game().validMoves(start).contains(moveToPlay)) {
                     System.out.println("Making move");
                     client.makeMove(moveToPlay);
@@ -208,6 +209,24 @@ public class ClientUI {
             case 'h' -> file = 8;
         }
         return new ChessPosition(rank, file);
+    }
+    private ChessPiece.PieceType promotionPrompt() {
+        Scanner stdin = new Scanner(System.in);
+        System.out.println("Your pawn is going to promote! Type either 'queen', 'rook', 'knight', or 'bishop' for the piece you want to promote to.");
+        while (true) {
+            String input = stdin.next().toLowerCase();
+            if (input.equals("queen")) {
+                return ChessPiece.PieceType.QUEEN;
+            } else if (input.equals("rook")) {
+                return ChessPiece.PieceType.ROOK;
+            } else if (input.equals("knight")) {
+                return ChessPiece.PieceType.KNIGHT;
+            } else if (input.equals("bishop")) {
+                return ChessPiece.PieceType.BISHOP;
+            } else {
+                System.out.println("Invalid input. Type either 'queen', 'rook', 'knight', or 'bishop'.");
+            }
+        }
     }
     private String printResult(ClientMessage msg, ChessGame.TeamColor printAs) {
         StringBuilder str = new StringBuilder();
@@ -350,7 +369,6 @@ public class ClientUI {
             str.append(SET_BG_COLOR_LIGHT_GREY);
         }
     }
-
     private void printHelp() {
         System.out.println(
                 "Commands available:\n" +

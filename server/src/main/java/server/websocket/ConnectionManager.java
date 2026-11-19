@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import com.google.gson.Gson;
+import records.GameDAO;
+import websocket.messages.LoadGameMessage;
 import websocket.messages.NotificationMessage;
 import websocket.messages.ServerMessage;
 import java.util.logging.Logger;
@@ -44,6 +46,18 @@ public class ConnectionManager {
                     entry.getKey().getRemote().sendString(serializer.toJson(new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, notification)));
                 } catch (IOException e) {
                     LOGGER.warning(String.format("Failed to send notification of game %d", gameID));
+                }
+            }
+        }
+    }
+
+    public void publishGameChange(GameDAO game) {
+        for (Map.Entry<Session, connectionType> entry : connections.entrySet()) {
+            if (entry.getValue().gameID() == game.gameID()) {
+                try {
+                    entry.getKey().getRemote().sendString(serializer.toJson(new LoadGameMessage(game)));
+                } catch (IOException e) {
+                    LOGGER.warning(String.format("Failed to send load game message for game %d", game.gameID()));
                 }
             }
         }

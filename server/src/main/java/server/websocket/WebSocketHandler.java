@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 import dataaccess.DataAccessException;
 import dataaccess.DatabaseException;
 import dataaccess.InvalidLoginException;
+import records.GameDAO;
 import service.ServiceProvider;
 import io.javalin.websocket.WsCloseContext;
 import io.javalin.websocket.WsCloseHandler;
@@ -73,11 +74,11 @@ public class WebSocketHandler implements WsConnectHandler, WsCloseHandler, WsMes
         connectionManager.remove(ctx.session);
     }
 
-    public void messageConnect(WsMessageContext ctx) throws IOException {
+    private void messageConnect(WsMessageContext ctx) throws IOException {
         ConnectCommand command = serializer.fromJson(ctx.message(), ConnectCommand.class);
         connectionManager.add(ctx.session, command.getGameID(), command.isPlaying());
         try {
-            LoadGameMessage message = new LoadGameMessage(LOAD_GAME, server.getGame(command.getAuthToken(), command.getGameID()));
+            LoadGameMessage message = new LoadGameMessage(server.getGame(command.getAuthToken(), command.getGameID()));
             ctx.session.getRemote().sendString(serializer.toJson(message));
             String username = server.authSession(command.getAuthToken()).username();
             connectionManager.notify(String.format("%s joined the game!", username), command.getGameID());
@@ -89,11 +90,13 @@ public class WebSocketHandler implements WsConnectHandler, WsCloseHandler, WsMes
             ctx.session.getRemote().sendString(serializer.toJson(message));
         }
     }
-    public void messageMakeMove(WsMessageContext ctx) throws IOException {
+    private void messageMakeMove(WsMessageContext ctx) throws IOException {
         try {
             MakeMoveCommand command = serializer.fromJson(ctx.message(), MakeMoveCommand.class);
             server.makeMove(command.getAuthToken(), command.getGameID(), command.getChessMove());
+            GameDAO game = server.getGame(command.getAuthToken(), command.getGameID());
             connectionManager.notify("Move made!", command.getGameID());
+            connectionManager.publishGameChange(game);
         } catch (InvalidLoginException e) {
             ErrorMessage msg = new ErrorMessage("Invalid credentials");
             ctx.session.getRemote().sendString(serializer.toJson(msg, ErrorMessage.class));
@@ -106,7 +109,7 @@ public class WebSocketHandler implements WsConnectHandler, WsCloseHandler, WsMes
         }
     }
 
-    public void messageLeaveGame(WsMessageContext ctx) throws IOException {
+    private void messageLeaveGame(WsMessageContext ctx) throws IOException {
         try {
             LeaveGameCommand command = serializer.fromJson(ctx.message(), LeaveGameCommand.class);
             server.leaveGame(command.getAuthToken(), command.getColor(), command.getGameID());

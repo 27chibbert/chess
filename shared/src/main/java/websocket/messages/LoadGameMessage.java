@@ -6,8 +6,8 @@ public class LoadGameMessage extends ServerMessage {
 
     private final GameDAO game;
 
-    public LoadGameMessage(ServerMessageType messageType, GameDAO game) {
-        super(messageType);
+    public LoadGameMessage(GameDAO game) {
+        super(ServerMessageType.LOAD_GAME);
         this.game = game;
     }
 

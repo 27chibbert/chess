@@ -133,6 +133,7 @@ public class WebSocketHandler implements WsConnectHandler, WsCloseHandler, WsMes
                 connectionManager.notify("An observer has left the game", command.getGameID(), command.getAuthToken());
             }
             connectionManager.remove(ctx.session);
+            ctx.session.close();
         } catch (InvalidLoginException e) {
             ErrorMessage msg = new ErrorMessage("Invalid credentials");
             ctx.session.getRemote().sendString(serializer.toJson(msg));

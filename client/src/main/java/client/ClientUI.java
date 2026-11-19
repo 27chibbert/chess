@@ -168,9 +168,7 @@ public class ClientUI {
                 client.resign();
             }
         }
-        if (playing) {
-            client.leaveGame(liveGame.gameID());
-        }
+        client.leaveGame(liveGame.gameID(), playing);
         return new ClientMessage(true, "Stopped observing game", null);
     }
 

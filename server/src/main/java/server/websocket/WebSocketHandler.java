@@ -96,6 +96,15 @@ public class WebSocketHandler implements WsConnectHandler, WsCloseHandler, WsMes
             GameDAO game = server.getGame(command.getAuthToken(), command.getGameID());
             connectionManager.notify("Move made!", command.getGameID(), command.getAuthToken());
             connectionManager.publishGameChange(game);
+            String message = "";
+            if (game.game().isInCheckmate(game.game().getTeamTurn())) {
+                if (game.game().getTeamTurn() == ChessGame.TeamColor.WHITE) {
+                    message = "Black is in checkmate. White wins!";
+                } else {
+                    message = "White is in checkmate. Black wins!";
+                }
+                connectionManager.notify(message, command.getGameID(), "null");
+            }
         } catch (InvalidLoginException e) {
             ErrorMessage msg = new ErrorMessage("Invalid credentials");
             ctx.session.getRemote().sendString(serializer.toJson(msg, ErrorMessage.class));

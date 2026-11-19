@@ -109,6 +109,8 @@ public class ServiceProvider {
                 (game.getTeamTurn() == ChessGame.TeamColor.BLACK && gameD.blackUsername().equals(identity.username()))) {
             game.makeMove(moveToPlay);
             db.changeGame(game, gameID);
+        } else {
+            throw new InvalidLoginException("Attempted to move a piece of the wrong color, or from an empty square");
         }
     }
     public void resign(String authToken, int gameID, ChessGame.TeamColor color) throws

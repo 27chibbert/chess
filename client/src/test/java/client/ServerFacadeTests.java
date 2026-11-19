@@ -38,7 +38,7 @@ public class ServerFacadeTests {
         server = new Server();
         port = server.run(0);
         System.out.println("Started test HTTP server on " + port);
-        facade = new ServerFacade(port);
+        facade = new ServerFacade(new ChessClient(), port);
     }
 
     @BeforeEach

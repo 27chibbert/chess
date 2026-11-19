@@ -9,6 +9,7 @@ import io.javalin.*;
 import io.javalin.http.Context;
 import com.google.gson.Gson;
 import records.*;
+import server.websocket.WebSocketHandler;
 import service.ServiceProvider;
 import java.util.logging.Logger;
 import java.util.logging.FileHandler;
@@ -22,9 +23,12 @@ public class Server {
     private ServiceProvider service;
     private static Gson serializer = new Gson();
     private static final Logger LOGGER = Logger.getLogger("Server Log");
+    private final WebSocketHandler webSocketHandler;
 
     public Server() {
         service = new ServiceProvider();
+        webSocketHandler = new WebSocketHandler(service);
+
         javalin = Javalin.create(config -> config.staticFiles.add("web"));
         // Register your endpoints and exception handlers here - exception handlers handled in functions
         javalin.post("/user", ctx -> postUser(ctx));
@@ -34,6 +38,11 @@ public class Server {
         javalin.delete("/session", ctx -> deleteSession(ctx));
         javalin.put("/game", ctx -> putGame(ctx));
         javalin.get("/game", ctx -> getGame(ctx));
+        javalin.ws("/ws", ws -> {
+            ws.onConnect(webSocketHandler);
+            ws.onMessage(webSocketHandler);
+            ws.onClose(webSocketHandler);
+        });
         //
         try {
             FileHandler fd = new FileHandler("logs/server.log", true);

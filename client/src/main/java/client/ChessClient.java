@@ -1,28 +1,37 @@
 package client;
 
 import chess.ChessGame;
+import chess.ChessMove;
 import records.*;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.HashMap;
+import java.util.logging.Logger;
+import java.util.logging.FileHandler;
+import java.util.logging.SimpleFormatter;
 
 public class ChessClient {
     enum UserState {
         UNAUTHENTICATED,
         AUTHENTICATED,
-        HELP,
-        AUTHENTICATEDHELP,
-        EXIT
+        OBSERVING,
+        PLAYING
     }
 
+    private GameDAO liveGame;
+    private ChessGame.TeamColor color;
     private ClientUI ui;
-    private static ServerFacade webClient = new ServerFacade(8080);
+    private static ServerFacade webClient;
     private UserState state;
     private String username;
     private String authToken;
     private HashMap<Integer, Integer> listToID;
+    private WebSocketFacade webSocketFacade;
+    private static final Logger LOGGER = Logger.getLogger("Client Log");
+
 
     BiFunction<String, Integer, String> getToken = (input, n) -> {
         if (input == null) {
@@ -37,7 +46,17 @@ public class ChessClient {
     };
 
     public ChessClient() {
-
+        webClient = new ServerFacade(this, 8080);
+        webSocketFacade = null;
+        color = ChessGame.TeamColor.WHITE;
+        try {
+            FileHandler fd = new FileHandler("logs/client.log", true);
+            fd.setFormatter(new SimpleFormatter());
+            LOGGER.addHandler(fd);
+            LOGGER.setUseParentHandlers(false);
+        } catch (Exception e) {
+            System.out.println("Server logger failed to start");
+        }
     }
 
     public void startClient() {
@@ -90,7 +109,6 @@ public class ChessClient {
     public ClientMessage joinGame(String input) {
         if (!getToken.apply(input, 1).isEmpty() && !getToken.apply(input, 2).isEmpty()) {
             int gameID;
-            ChessGame.TeamColor color;
             try {
                 gameID = Integer.parseInt(getToken.apply(input, 1));
             } catch (NumberFormatException e) {
@@ -113,6 +131,9 @@ public class ChessClient {
             GameDAO joinedGame = null;
             for (GameDAO game: games) {
                 if (game.gameID() == gameID) {
+                    webSocketFacade = new WebSocketFacade("http://localhost:8080", this);
+                    webSocketFacade.connectToGame(authToken, gameID, true);
+                    liveGame = game;
                     joinedGame = game;
                     break;
                 }
@@ -147,7 +168,11 @@ public class ChessClient {
             GameDAO[] games = (GameDAO[]) result.data();
             for (GameDAO game: games) {
                 if (game.gameID() == gameID) {
+                    liveGame = game;
                     GameDAO[] gameToPrint = { game };
+                    LOGGER.info("Attempting to observe game " + gameID + " with session ID " + authToken);
+                    webSocketFacade = new WebSocketFacade("http://localhost:8080", this);
+                    webSocketFacade.connectToGame(authToken, gameID, false);
                     return new ClientMessage(authed(), "Observing game", gameToPrint);
                 }
             }
@@ -155,6 +180,34 @@ public class ChessClient {
         } else {
             return new ClientMessage(authed(), "Bad command format. Type 'help' for more info", null);
         }
+    }
+    public void makeMove(ChessMove moveToPlay) {
+        webSocketFacade.makeMove(authToken, liveGame.gameID(), moveToPlay);
+        LOGGER.info("Attempting to make move " + moveToPlay.toString());
+    }
+    public ClientMessage resign() {
+        webSocketFacade.resign(authToken, liveGame.gameID(), color);
+        return new ClientMessage(true, "You resigned from the game.", null);
+    }
+    public void leaveGame(int gameID) {
+        try {
+            webSocketFacade.leaveGame(authToken, liveGame.gameID(), color);
+            webSocketFacade.session.close();
+        } catch (IOException e) {
+            LOGGER.warning("Failed to close websocket session");
+        }
+        webSocketFacade = null;
+    }
+    public void notify(String message) {
+        ui.notify(message);
+    }
+    public GameDAO getLiveGame() {
+        return liveGame;
+    }
+    public void setLiveGame(GameDAO game) {
+        liveGame = game;
+        ui.setLiveGame(game);
+        ui.loadGame();
     }
     private ClientMessage resolveResponse(ServerMessage msg) {
         if (msg.data().getClass() == String.class) {

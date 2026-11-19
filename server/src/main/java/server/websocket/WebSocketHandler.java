@@ -1,5 +1,6 @@
 package server.websocket;
 
+import chess.ChessGame;
 import chess.InvalidMoveException;
 import com.google.gson.Gson;
 import dataaccess.DataAccessException;
@@ -14,7 +15,7 @@ import io.javalin.websocket.WsConnectHandler;
 import io.javalin.websocket.WsMessageContext;
 import io.javalin.websocket.WsMessageHandler;
 import websocket.commands.ConnectCommand;
-import websocket.commands.LeaveGameCommand;
+import websocket.commands.ResignOrLeaveGameCommand;
 import websocket.commands.MakeMoveCommand;
 import websocket.commands.UserGameCommand;
 import websocket.messages.ErrorMessage;
@@ -24,8 +25,6 @@ import java.util.logging.FileHandler;
 import java.util.logging.SimpleFormatter;
 
 import java.io.IOException;
-
-import static websocket.messages.ServerMessage.ServerMessageType.*;
 
 public class WebSocketHandler implements WsConnectHandler, WsCloseHandler, WsMessageHandler {
 
@@ -62,7 +61,7 @@ public class WebSocketHandler implements WsConnectHandler, WsCloseHandler, WsMes
                 case CONNECT -> messageConnect(ctx);
                 case MAKE_MOVE -> messageMakeMove(ctx);
                 case LEAVE -> messageLeaveGame(ctx);
-                case RESIGN -> {}
+                case RESIGN -> messageResign(ctx);
             }
         } catch (IOException e) {
             LOGGER.warning("Failed to handle incoming message");
@@ -108,15 +107,34 @@ public class WebSocketHandler implements WsConnectHandler, WsCloseHandler, WsMes
             ctx.session.getRemote().sendString(serializer.toJson(msg, ErrorMessage.class));
         }
     }
-
     private void messageLeaveGame(WsMessageContext ctx) throws IOException {
         try {
-            LeaveGameCommand command = serializer.fromJson(ctx.message(), LeaveGameCommand.class);
+            ResignOrLeaveGameCommand command = serializer.fromJson(ctx.message(), ResignOrLeaveGameCommand.class);
             server.leaveGame(command.getAuthToken(), command.getColor(), command.getGameID());
             connectionManager.remove(ctx.session);
         } catch (InvalidLoginException e) {
             ErrorMessage msg = new ErrorMessage("Invalid credentials");
             ctx.session.getRemote().sendString(serializer.toJson(msg));
+        } catch (DatabaseException | DataAccessException e) {
+            ErrorMessage msg = new ErrorMessage("Server error. Game ID likely invalid");
+            ctx.session.getRemote().sendString(serializer.toJson(msg, ErrorMessage.class));
+        }
+    }
+    private void messageResign(WsMessageContext ctx) throws IOException {
+        try {
+            ResignOrLeaveGameCommand command = serializer.fromJson(ctx.message(), ResignOrLeaveGameCommand.class);
+            server.resign(command.getAuthToken(), command.getGameID(), command.getColor());
+            if (command.getColor() == ChessGame.TeamColor.WHITE) {
+                connectionManager.notify("White has resigned. Black has won!", command.getGameID());
+            } else {
+                connectionManager.notify("Black has resigned. White has won!", command.getGameID());
+            }
+        } catch (InvalidLoginException e) {
+            ErrorMessage msg = new ErrorMessage("Invalid credentials");
+            ctx.session.getRemote().sendString(serializer.toJson(msg));
+        } catch (InvalidMoveException e) {
+            ErrorMessage msg = new ErrorMessage("You attempted illegal resigning under the wrong color");
+            ctx.session.getRemote().sendString(serializer.toJson(msg, ErrorMessage.class));
         } catch (DatabaseException | DataAccessException e) {
             ErrorMessage msg = new ErrorMessage("Server error. Game ID likely invalid");
             ctx.session.getRemote().sendString(serializer.toJson(msg, ErrorMessage.class));

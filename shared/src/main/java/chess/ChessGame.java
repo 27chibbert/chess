@@ -14,12 +14,14 @@ public class ChessGame {
     private TeamColor turn;
     private ChessBoard board;
     private GameFlags flags;
+    private TeamColor resigned;
 
     public ChessGame() {
         board = new ChessBoard();
         board.resetBoard();
         turn = TeamColor.WHITE;
         flags = new GameFlags();
+        resigned = null;
     }
 
     @Override
@@ -226,6 +228,13 @@ public class ChessGame {
         //throw new RuntimeException("Not implemented");
     }
 
+    public void resign(TeamColor color) {
+        resigned = color;
+    }
+
+    public TeamColor getResigned() {
+        return resigned;
+    }
     /**
      * Gets the current chessboard
      *

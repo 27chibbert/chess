@@ -185,6 +185,10 @@ public class ChessClient {
         webSocketFacade.makeMove(authToken, liveGame.gameID(), moveToPlay);
         LOGGER.info("Attempting to make move " + moveToPlay.toString());
     }
+    public ClientMessage resign() {
+        webSocketFacade.resign(authToken, liveGame.gameID(), color);
+        return new ClientMessage(true, "You resigned from the game.", null);
+    }
     public void leaveGame(int gameID) {
         try {
             webSocketFacade.leaveGame(authToken, liveGame.gameID(), color);

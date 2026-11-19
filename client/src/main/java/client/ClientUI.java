@@ -166,7 +166,7 @@ public class ClientUI {
                     System.out.println("Invalid move");
                 }
             } else if (playing && command.length() >= 6 && command.substring(0,6).equals("resign")) {
-
+                client.resign();
             }
         }
         if (playing) {
@@ -267,7 +267,7 @@ public class ClientUI {
         if (playAndPrintAs == null || playAndPrintAs == WHITE) {
             str.append("  \u2009A \u3000B \u3000C \u3000D \u3000E \u3000F \u3000G \u3000H  \n");
             for (int rank = 8; rank >= 1; rank -= 1) {
-                str.append(rank).append(" ");
+                str.append(" ").append(rank).append(" ");
                 for (int file = 1; file <= 8; file += 1) {
                     colorSpace(str, rank, file, squares, highlight);
                     str.append(printSpace(game, rank, file));
@@ -287,10 +287,19 @@ public class ClientUI {
             }
             str.append("   H\u3000 G\u3000 F\u3000 E\u3000 D\u3000 C\u3000 B\u3000 A  \n");
         }
+        if (game.game().getResigned() != null && game.game().getResigned() == WHITE) {
+            str.append("White has resigned. Black wins the game!\n");
+            return str.toString();
+        } else if (game.game().getResigned() == BLACK) {
+            str.append("Black has resigned. White wins the game!\n");
+            return str.toString();
+        }
         if (game.game().isInCheckmate(WHITE)) {
             str.append("White is in Checkmate! Black has won!");
+            return str.toString();
         } else if (game.game().isInCheckmate(BLACK)) {
             str.append("Black is in Checkmate! White has won!");
+            return str.toString();
         } else {
             if (game.game().getTeamTurn() == WHITE) {
                 str.append("White's turn\n");

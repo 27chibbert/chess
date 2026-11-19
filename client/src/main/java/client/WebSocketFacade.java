@@ -8,9 +8,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import records.GameDAO;
 import websocket.commands.ConnectCommand;
-import websocket.commands.LeaveGameCommand;
+import websocket.commands.ResignOrLeaveGameCommand;
 import websocket.commands.MakeMoveCommand;
 import websocket.commands.UserGameCommand;
 import websocket.messages.*;
@@ -64,16 +63,6 @@ public class WebSocketFacade extends Endpoint {
         }
     }
 
-    /*public void playGame(String authToken, int gameID) {
-        try {
-            ConnectCommand command = new ConnectCommand(UserGameCommand.CommandType.CONNECT, authToken, gameID, false);
-            this.session.getBasicRemote().sendText(serializer.toJson(command));
-            LOGGER.info("Sent observe game ws request to server with id " + gameID + " and session " + authToken);
-        } catch (Exception e) {
-            throw new RuntimeException("Observe game websocket broke");
-        }
-    }*/
-
     public void makeMove(String authToken, int gameID, ChessMove moveToPlay) {
         try {
             MakeMoveCommand command = new MakeMoveCommand(UserGameCommand.CommandType.MAKE_MOVE, authToken, gameID, moveToPlay);
@@ -84,9 +73,20 @@ public class WebSocketFacade extends Endpoint {
         }
     }
 
+    public void resign(String authToken, int gameID, ChessGame.TeamColor color) {
+        try {
+            ResignOrLeaveGameCommand command = new ResignOrLeaveGameCommand(UserGameCommand.CommandType.RESIGN, authToken, gameID, color);
+            String message = serializer.toJson(command);
+            this.session.getBasicRemote().sendText(message);
+        } catch (IOException e) {
+            LOGGER.warning(String.format("Failed to send resignation message: %s", e.getMessage()));
+            throw new RuntimeException("Failed with IOException when attempting to make resignition command:" + e.getMessage());
+        }
+    }
+
     public void leaveGame(String authToken, int gameID, ChessGame.TeamColor color) {
         try {
-            LeaveGameCommand command = new LeaveGameCommand(authToken, gameID, color);
+            ResignOrLeaveGameCommand command = new ResignOrLeaveGameCommand(UserGameCommand.CommandType.LEAVE, authToken, gameID, color);
             String message = serializer.toJson(command);
             this.session.getBasicRemote().sendText(message);
         } catch (IOException e) {

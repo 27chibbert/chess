@@ -1,6 +1,7 @@
 package client;
 
 import chess.ChessGame;
+import chess.ChessMove;
 import records.*;
 
 import java.io.IOException;
@@ -21,6 +22,7 @@ public class ChessClient {
     }
 
     private GameDAO liveGame;
+    private ChessGame.TeamColor color;
     private ClientUI ui;
     private static ServerFacade webClient;
     private UserState state;
@@ -46,7 +48,7 @@ public class ChessClient {
     public ChessClient() {
         webClient = new ServerFacade(this, 8080);
         webSocketFacade = null;
-
+        color = ChessGame.TeamColor.WHITE;
         try {
             FileHandler fd = new FileHandler("logs/client.log", true);
             fd.setFormatter(new SimpleFormatter());
@@ -107,7 +109,6 @@ public class ChessClient {
     public ClientMessage joinGame(String input) {
         if (!getToken.apply(input, 1).isEmpty() && !getToken.apply(input, 2).isEmpty()) {
             int gameID;
-            ChessGame.TeamColor color;
             try {
                 gameID = Integer.parseInt(getToken.apply(input, 1));
             } catch (NumberFormatException e) {
@@ -130,13 +131,14 @@ public class ChessClient {
             GameDAO joinedGame = null;
             for (GameDAO game: games) {
                 if (game.gameID() == gameID) {
+                    webSocketFacade = new WebSocketFacade("http://localhost:8080", this);
+                    liveGame = game;
                     joinedGame = game;
                     break;
                 }
             }
             GameDAO[] toPrint = {joinedGame};
             if (result.data() == null) {
-
                 return new ClientMessage(authed(), String.format("Successfully joined game %d", gameID), toPrint);
             }
             return resolveResponse(result);
@@ -165,6 +167,7 @@ public class ChessClient {
             GameDAO[] games = (GameDAO[]) result.data();
             for (GameDAO game: games) {
                 if (game.gameID() == gameID) {
+                    liveGame = game;
                     GameDAO[] gameToPrint = { game };
                     LOGGER.info("Attempting to observe game " + gameID + " with session ID " + authToken);
                     webSocketFacade = new WebSocketFacade("http://localhost:8080", this);
@@ -177,8 +180,13 @@ public class ChessClient {
             return new ClientMessage(authed(), "Bad command format. Type 'help' for more info", null);
         }
     }
-    public void leaveGame() {
+    public void makeMove(ChessMove moveToPlay) {
+        webSocketFacade.makeMove(authToken, liveGame.gameID(), moveToPlay);
+        LOGGER.info("Attempting to make move " + moveToPlay.toString());
+    }
+    public void leaveGame(int gameID) {
         try {
+            webSocketFacade.leaveGame(authToken, liveGame.gameID(), color);
             webSocketFacade.session.close();
         } catch (IOException e) {
             LOGGER.warning("Failed to close websocket session");

@@ -1,5 +1,7 @@
 package client;
 
+import chess.ChessGame;
+import chess.ChessMove;
 import com.google.gson.Gson;
 import jakarta.websocket.*;
 import java.io.IOException;
@@ -7,6 +9,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import websocket.commands.ConnectCommand;
+import websocket.commands.LeaveGameCommand;
+import websocket.commands.MakeMoveCommand;
 import websocket.commands.UserGameCommand;
 import websocket.messages.*;
 
@@ -49,6 +53,37 @@ public class WebSocketFacade extends Endpoint {
     @Override
     public void onOpen(Session session, EndpointConfig endpointConfig) {}
 
+    public void observeGame(String authToken, int gameID) {
+        try {
+            ConnectCommand command = new ConnectCommand(UserGameCommand.CommandType.CONNECT, authToken, gameID, false);
+            this.session.getBasicRemote().sendText(serializer.toJson(command));
+            LOGGER.info("Sent observe game ws request to server with id " + gameID + " and session " + authToken);
+        } catch (Exception e) {
+            throw new RuntimeException("Observe game websocket broke");
+        }
+    }
+
+    public void makeMove(String authToken, int gameID, ChessMove moveToPlay) {
+        try {
+            MakeMoveCommand command = new MakeMoveCommand(UserGameCommand.CommandType.CONNECT, authToken, gameID, moveToPlay);
+            String message = serializer.toJson(command);
+            this.session.getBasicRemote().sendText(message);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to send make move command");
+        }
+    }
+
+    public void leaveGame(String authToken, int gameID, ChessGame.TeamColor color) {
+        try {
+            LeaveGameCommand command = new LeaveGameCommand(authToken, gameID, color);
+            String message = serializer.toJson(command);
+            this.session.getBasicRemote().sendText(message);
+        } catch (IOException e) {
+            LOGGER.warning("Failed with IOException when attempting to make leaveGame command");
+            throw new RuntimeException("Failed with IOException when attempting to make leaveGame command");
+        }
+    }
+
     private void handleMessage(String message) {
         ServerMessage msg = serializer.fromJson(message, ServerMessage.class);
         switch (msg.getServerMessageType()) {
@@ -72,13 +107,4 @@ public class WebSocketFacade extends Endpoint {
         client.notify(String.format("Error: %s", msg.getError()));
     }
 
-    public void observeGame(String authToken, int gameID) {
-        try {
-            ConnectCommand command = new ConnectCommand(UserGameCommand.CommandType.CONNECT, authToken, gameID, false);
-            this.session.getBasicRemote().sendText(serializer.toJson(command));
-            LOGGER.info("Sent observe game ws request to server with id " + gameID + " and session " + authToken);
-        } catch (Exception e) {
-            throw new RuntimeException("Observe game websocket broke");
-        }
-    }
 }

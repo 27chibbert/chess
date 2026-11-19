@@ -124,6 +124,11 @@ public class MemoryDataAccess implements DataAccess {
         }
         return false;
     }
+    @Override
+    public boolean changeGame(ChessGame game, int gameID) {
+        return false;
+        //implement this later
+    }
 
     @Override
     public boolean clearAll() {

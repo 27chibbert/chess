@@ -192,13 +192,13 @@ public class DatabaseManager implements DataAccess {
                 query.setInt(1, gameID);
                 var result = query.executeQuery();
                 if (result.next()) {
-                    if (color == WHITE && result.getString(2) == null) {
+                    if (color == WHITE && (result.getString(2) == null ^ username == null)) {
                         var query2 = conn.prepareStatement("UPDATE games SET whiteUsername = ? WHERE id = ?");
                         query2.setString(1, username);
                         query2.setInt(2, gameID);
                         query2.executeUpdate();
 
-                    } else if (color == BLACK && result.getString(3) == null) {
+                    } else if (color == BLACK && (result.getString(3) == null ^ username == null)) {
                         var query2 = conn.prepareStatement("UPDATE games SET blackUsername = ? WHERE id = ?");
                         query2.setString(1, username);
                         query2.setInt(2, gameID);
@@ -214,6 +214,20 @@ public class DatabaseManager implements DataAccess {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public boolean changeGame(ChessGame game, int gameID) throws DatabaseException {
+        try (var conn = getConnection()) {
+            try (var statement = conn.prepareStatement("UPDATE games SET game = ? WHERE id = ?")) {
+                statement.setString(1, serializer.toJson(game, ChessGame.class));
+                statement.setInt(2, gameID);
+                statement.executeUpdate();
+                return true;
+            }
+        } catch (SQLException | DataAccessException e) {
+            return false;
+        }
     }
 
     @Override

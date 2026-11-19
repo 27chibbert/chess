@@ -1,5 +1,7 @@
 package service;
 import chess.ChessGame;
+import chess.ChessMove;
+import chess.InvalidMoveException;
 import dataaccess.*;
 import dataaccess.sql.DatabaseManager;
 import records.*;
@@ -79,6 +81,31 @@ public class ServiceProvider {
         }
     }
 
+    public void leaveGame(String authToken, ChessGame.TeamColor color, int gameID) throws
+            InvalidLoginException, DataAccessException, DatabaseException {
+        AuthDAO identity = authSession(authToken);
+        if (db.getGame(gameID) == null) {
+            throw new DataAccessException("Bad request - invalid gameID");
+        }
+        if (color == null) {
+            throw new DataAccessException("Bad request - invalid color");
+        }
+        if (!db.updateGame(null, color, gameID)) {
+            throw new DataAccessException("Failed to remove user " + identity.username() + " from game");
+        }
+
+    }
+    public void makeMove(String authToken, int gameID, ChessMove moveToPlay) throws
+            InvalidLoginException, DataAccessException, DatabaseException, InvalidMoveException {
+        AuthDAO identity = authSession(authToken);
+        GameDAO gameD = getGame(authToken, gameID);
+        ChessGame game = gameD.game();
+        if ((game.getTeamTurn() == ChessGame.TeamColor.WHITE && gameD.whiteUsername().equals(identity.username())) ||
+                (game.getTeamTurn() == ChessGame.TeamColor.BLACK && gameD.blackUsername().equals(identity.username()))) {
+            game.makeMove(moveToPlay);
+            db.changeGame(game, gameID);
+        }
+    }
     public GameDAO getGame(String authToken, int gameID) throws InvalidLoginException, DataAccessException, DatabaseException {
         AuthDAO identity = authSession(authToken);
         return db.getGame(gameID);

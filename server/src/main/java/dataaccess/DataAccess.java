@@ -13,5 +13,6 @@ public interface DataAccess {
     public GameDAO getGame(int id) throws DatabaseException;
     public List<GameDAO> getAllGames() throws DatabaseException;
     public boolean updateGame(String username, ChessGame.TeamColor color, int gameID) throws DatabaseException;
+    public boolean changeGame(ChessGame game, int gameID) throws DatabaseException;
     public boolean clearAll() throws DatabaseException;
 }

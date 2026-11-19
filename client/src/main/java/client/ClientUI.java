@@ -130,13 +130,13 @@ public class ClientUI {
                     printObserveHelp();
                 }
             } else if (command.length() >= 6 && command.substring(0, 6).equals("redraw")) {
-                System.out.println(printGame(liveGame, WHITE, null));
+                System.out.println(printGame(liveGame, null));
             } else if (command.length() >= 12 && command.substring(0, 9).equals("highlight")) {
                 ChessPosition highlight = getPositionFromCommand(command.substring(10,12));
                 if (highlight == null) {
                     System.out.println("Bad command format. Write the square in this form 'a1'");
                 } else {
-                    System.out.println(printGame(liveGame, printAs, highlight));
+                    System.out.println(printGame(liveGame, highlight));
                 }
             } else if (playing && command.length() >= 10 && command.substring(0,4).equals("move")) {
                 ChessPosition start = getPositionFromCommand(command.substring(5,7));
@@ -148,12 +148,16 @@ public class ClientUI {
                 ChessMove moveToPlay = new ChessMove(start, end, null);
                 if (liveGame.game().validMoves(start).contains(moveToPlay)) {
                     System.out.println("Making move");
+                    client.makeMove(moveToPlay);
                 } else {
                     System.out.println("Invalid move");
                 }
             } else if (playing && command.length() >= 6 && command.substring(0,6).equals("resign")) {
 
             }
+        }
+        if (playing) {
+            client.leaveGame(liveGame.gameID());
         }
         return new ClientMessage(true, "Stopped observing game", null);
     }
@@ -176,7 +180,7 @@ public class ClientUI {
 
             }
         }
-        client.leaveGame();
+        //client.leaveGame(playing);
         return new ClientMessage(true, "Left game", null);
     }
 
@@ -185,7 +189,7 @@ public class ClientUI {
     }
 
     public void loadGame(GameDAO game) {
-        System.out.println(printGame(game, printAs, null));
+        System.out.println(printGame(game, null));
     }
 
     private ChessPosition getPositionFromCommand(String str) {
@@ -222,17 +226,14 @@ public class ClientUI {
             return str.toString();
         }
         for (GameDAO game: msg.gamesToPrint()) {
-            str.append(printGame(game, printAs, null)).append('\n');
+            str.append(printGame(game, null)).append('\n');
         }
         return str.toString();
     }
-    private String printGame(GameDAO game, ChessGame.TeamColor printAs, ChessPosition highlight) {
+    private String printGame(GameDAO game, ChessPosition highlight) {
         StringBuilder str = new StringBuilder();
         ChessGame.TeamColor color = game.game().getTeamTurn();
         Collection<ChessPosition> squares = new ArrayList<>();
-        if (printAs == null) {
-            printAs = game.game().getTeamTurn();
-        }
         str.append(SET_TEXT_COLOR_BLUE).append(SET_TEXT_BLINKING).append(SET_TEXT_BOLD).append("------ Game # ").append(game.gameID()).append(" - ")
                 .append(game.gameName()).append(" ------\n").append(RESET_TEXT_BOLD_FAINT).append(RESET_TEXT_BLINKING).append(RESET_TEXT_COLOR);
         if (game.whiteUsername() == null) {
@@ -256,12 +257,12 @@ public class ClientUI {
                 squares.add(move.getEndPosition());
             }
         }
-        if (printAs == WHITE) {
+        if (printAs == null || printAs == WHITE) {
             str.append("  \u2009A \u3000B \u3000C \u3000D \u3000E \u3000F \u3000G \u3000H  \n");
             for (int rank = 8; rank >= 1; rank -= 1) {
                 str.append(rank).append(" ");
                 for (int file = 1; file <= 8; file += 1) {
-                    colorSpace(str, rank, file, squares, highlight, printAs);
+                    colorSpace(str, rank, file, squares, highlight);
                     str.append(printSpace(game, rank, file));
                 }
                 str.append(SET_BG_COLOR_BLACK + " ").append(rank).append('\n');
@@ -272,7 +273,7 @@ public class ClientUI {
             for (int rank = 1; rank <= 8; rank += 1) {
                 str.append(rank).append(" ");
                 for (int file = 8; file >= 1; file -= 1) {
-                    colorSpace(str, rank, file, squares, highlight, printAs);
+                    colorSpace(str, rank, file, squares, highlight);
                     str.append(printSpace(game, rank, file));
                 }
                 str.append(SET_BG_COLOR_BLACK + " ").append(rank).append('\n');
@@ -331,13 +332,13 @@ public class ClientUI {
         }
         return "BROKEN";
     }
-    private void colorSpace(StringBuilder str, int rank, int file, Collection<ChessPosition> squares, ChessPosition highlight, ChessGame.TeamColor color) {
+    private void colorSpace(StringBuilder str, int rank, int file, Collection<ChessPosition> squares, ChessPosition highlight) {
         if (highlight != null && rank == highlight.getRank() && file == highlight.getFile()) {
             str.append(SET_BG_COLOR_BLACK);
             return;
         }
         int offset = 0;
-        if (color == BLACK) {
+        if (printAs == BLACK) {
             offset = 1;
         }
         if ((file + rank - offset) % 2 == 0 && squares.contains(new ChessPosition(rank, file))) {

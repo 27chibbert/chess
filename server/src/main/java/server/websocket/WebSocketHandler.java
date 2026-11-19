@@ -1,5 +1,6 @@
 package server.websocket;
 
+import chess.InvalidMoveException;
 import com.google.gson.Gson;
 import dataaccess.DataAccessException;
 import dataaccess.DatabaseException;
@@ -12,6 +13,8 @@ import io.javalin.websocket.WsConnectHandler;
 import io.javalin.websocket.WsMessageContext;
 import io.javalin.websocket.WsMessageHandler;
 import websocket.commands.ConnectCommand;
+import websocket.commands.LeaveGameCommand;
+import websocket.commands.MakeMoveCommand;
 import websocket.commands.UserGameCommand;
 import websocket.messages.ErrorMessage;
 import websocket.messages.LoadGameMessage;
@@ -53,17 +56,15 @@ public class WebSocketHandler implements WsConnectHandler, WsCloseHandler, WsMes
     @Override
     public void handleMessage(WsMessageContext ctx) {
         UserGameCommand msg = serializer.fromJson(ctx.message(), UserGameCommand.class);
-        switch (msg.getCommandType()) {
-            case CONNECT -> {
-                try {
-                    messageConnect(ctx);
-                } catch (IOException e) {
-                    System.out.println("Something websocket broke");
-                }
+        try {
+            switch (msg.getCommandType()) {
+                case CONNECT -> messageConnect(ctx);
+                case MAKE_MOVE -> messageMakeMove(ctx);
+                case LEAVE -> messageLeaveGame(ctx);
+                case RESIGN -> {}
             }
-            case MAKE_MOVE -> {}
-            case LEAVE -> {}
-            case RESIGN -> {}
+        } catch (IOException e) {
+            LOGGER.warning("Failed to handle incoming message");
         }
     }
 
@@ -81,11 +82,41 @@ public class WebSocketHandler implements WsConnectHandler, WsCloseHandler, WsMes
             String username = server.authSession(command.getAuthToken()).username();
             connectionManager.notify(String.format("%s joined the game!", username), command.getGameID());
         } catch (InvalidLoginException e) {
-            ErrorMessage message = new ErrorMessage(ERROR, "Invalid Credentials");
+            ErrorMessage message = new ErrorMessage("Invalid Credentials");
             ctx.session.getRemote().sendString(serializer.toJson(message));
         } catch (DatabaseException | DataAccessException e) {
-            ErrorMessage message = new ErrorMessage(ERROR, "Server error. Game ID likely invalid");
+            ErrorMessage message = new ErrorMessage("Server error. Game ID likely invalid");
             ctx.session.getRemote().sendString(serializer.toJson(message));
+        }
+    }
+    public void messageMakeMove(WsMessageContext ctx) throws IOException {
+        try {
+            MakeMoveCommand command = serializer.fromJson(ctx.message(), MakeMoveCommand.class);
+            server.makeMove(command.getAuthToken(), command.getGameID(), command.getChessMove());
+            connectionManager.notify("Move made!", command.getGameID());
+        } catch (InvalidLoginException e) {
+            ErrorMessage msg = new ErrorMessage("Invalid credentials");
+            ctx.session.getRemote().sendString(serializer.toJson(msg, ErrorMessage.class));
+        } catch (InvalidMoveException e) {
+            ErrorMessage msg = new ErrorMessage("Invalid move attempted");
+            ctx.session.getRemote().sendString(serializer.toJson(msg, ErrorMessage.class));
+        } catch (DatabaseException | DataAccessException e) {
+            ErrorMessage msg = new ErrorMessage("Server error. Game ID likely invalid");
+            ctx.session.getRemote().sendString(serializer.toJson(msg, ErrorMessage.class));
+        }
+    }
+
+    public void messageLeaveGame(WsMessageContext ctx) throws IOException {
+        try {
+            LeaveGameCommand command = serializer.fromJson(ctx.message(), LeaveGameCommand.class);
+            server.leaveGame(command.getAuthToken(), command.getColor(), command.getGameID());
+            connectionManager.remove(ctx.session);
+        } catch (InvalidLoginException e) {
+            ErrorMessage msg = new ErrorMessage("Invalid credentials");
+            ctx.session.getRemote().sendString(serializer.toJson(msg));
+        } catch (DatabaseException | DataAccessException e) {
+            ErrorMessage msg = new ErrorMessage("Server error. Game ID likely invalid");
+            ctx.session.getRemote().sendString(serializer.toJson(msg, ErrorMessage.class));
         }
     }
 }

@@ -15,7 +15,7 @@ import java.util.logging.SimpleFormatter;
 
 
 public class ConnectionManager {
-    private record connectionType(Integer gameID, Boolean playing){};
+    private record connectionType(Integer gameID, Boolean playing, String authToken){};
     private ConcurrentHashMap<Session, connectionType> connections = new ConcurrentHashMap<>();
     private static Gson serializer = new Gson();
     private static final Logger LOGGER = Logger.getLogger("Server Log");
@@ -31,17 +31,17 @@ public class ConnectionManager {
         }
     }
 
-    public void add(Session session, Integer gameID, Boolean playing) {
-        connections.put(session, new connectionType(gameID, playing));
+    public void add(Session session, Integer gameID, Boolean playing, String authToken) {
+        connections.put(session, new connectionType(gameID, playing, authToken));
     }
 
     public void remove(Session session) {
         connections.remove(session);
     }
 
-    public void notify(String notification, int gameID) {
+    public void notify(String notification, int gameID, String authToken) {
         for (Map.Entry<Session, connectionType> entry : connections.entrySet()) {
-            if (entry.getValue().gameID() == gameID) {
+            if (entry.getValue().gameID() == gameID && !authToken.equals(entry.getValue().authToken())) {
                 try {
                     entry.getKey().getRemote().sendString(serializer.toJson(new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, notification)));
                 } catch (IOException e) {

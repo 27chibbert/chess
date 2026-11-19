@@ -49,7 +49,7 @@ public class WebSocketHandler implements WsConnectHandler, WsCloseHandler, WsMes
     @Override
     public void handleConnect(WsConnectContext ctx) {
         ctx.enableAutomaticPings();
-        connectionManager.add(ctx.session, null, null);
+        connectionManager.add(ctx.session, null, null, ctx.header("authorization"));
         //LOGGER.info("Started Websocket connection with session "  + ctx.header("authorization"));
     }
 
@@ -75,12 +75,12 @@ public class WebSocketHandler implements WsConnectHandler, WsCloseHandler, WsMes
 
     private void messageConnect(WsMessageContext ctx) throws IOException {
         ConnectCommand command = serializer.fromJson(ctx.message(), ConnectCommand.class);
-        connectionManager.add(ctx.session, command.getGameID(), command.isPlaying());
+        connectionManager.add(ctx.session, command.getGameID(), command.isPlaying(), command.getAuthToken());
         try {
             LoadGameMessage message = new LoadGameMessage(server.getGame(command.getAuthToken(), command.getGameID()));
             ctx.session.getRemote().sendString(serializer.toJson(message));
             String username = server.authSession(command.getAuthToken()).username();
-            connectionManager.notify(String.format("%s joined the game!", username), command.getGameID());
+            connectionManager.notify(String.format("%s joined the game!", username), command.getGameID(), command.getAuthToken());
         } catch (InvalidLoginException e) {
             ErrorMessage message = new ErrorMessage("Invalid Credentials");
             ctx.session.getRemote().sendString(serializer.toJson(message));
@@ -94,7 +94,7 @@ public class WebSocketHandler implements WsConnectHandler, WsCloseHandler, WsMes
             MakeMoveCommand command = serializer.fromJson(ctx.message(), MakeMoveCommand.class);
             server.makeMove(command.getAuthToken(), command.getGameID(), command.getChessMove());
             GameDAO game = server.getGame(command.getAuthToken(), command.getGameID());
-            connectionManager.notify("Move made!", command.getGameID());
+            connectionManager.notify("Move made!", command.getGameID(), command.getAuthToken());
             connectionManager.publishGameChange(game);
         } catch (InvalidLoginException e) {
             ErrorMessage msg = new ErrorMessage("Invalid credentials");
@@ -125,9 +125,9 @@ public class WebSocketHandler implements WsConnectHandler, WsCloseHandler, WsMes
             ResignOrLeaveGameCommand command = serializer.fromJson(ctx.message(), ResignOrLeaveGameCommand.class);
             server.resign(command.getAuthToken(), command.getGameID(), command.getColor());
             if (command.getColor() == ChessGame.TeamColor.WHITE) {
-                connectionManager.notify("White has resigned. Black has won!", command.getGameID());
+                connectionManager.notify("White has resigned. Black has won!", command.getGameID(), command.getAuthToken());
             } else {
-                connectionManager.notify("Black has resigned. White has won!", command.getGameID());
+                connectionManager.notify("Black has resigned. White has won!", command.getGameID(), command.getAuthToken());
             }
         } catch (InvalidLoginException e) {
             ErrorMessage msg = new ErrorMessage("Invalid credentials");

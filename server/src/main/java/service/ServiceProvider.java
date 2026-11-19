@@ -125,8 +125,12 @@ public class ServiceProvider {
         }
     }
     public GameDAO getGame(String authToken, int gameID) throws InvalidLoginException, DataAccessException, DatabaseException {
-        AuthDAO identity = authSession(authToken);
-        return db.getGame(gameID);
+        authSession(authToken);
+        GameDAO game = db.getGame(gameID);
+        if (game == null) {
+            throw new DataAccessException("Attempted to get game with non-existent ID");
+        }
+        return game;
     }
     public void clear() throws DatabaseException {
         db.clearAll();

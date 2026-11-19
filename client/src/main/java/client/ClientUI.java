@@ -37,81 +37,85 @@ public class ClientUI {
             ClientMessage result = new ClientMessage(false, "", null);
             playAndPrintAs = null;
             Scanner stdin = new Scanner(System.in);
-            switch (state) {
-                case UNAUTHENTICATED -> {
-                    System.out.println("Welcome to the chess app. Enter commands to play. Enter 'help' to get help");
-                    String input = stdin.nextLine();
-                    //System.out.println(ERASE_SCREEN);
-                    String command = null;
-                    try {
-                        command = new Scanner(input).next();
-                    } catch (NoSuchElementException e) {
-                        command = null;
-                    }
-                    if (command == null) {
-                        System.out.println("Invalid command. Try again\n");
-                    } else if (command.equals("help")) {
-                        printHelp();
-                    } else if (command.equals("register")) {
-                        result = client.register(input);
-                    } else if (command.equals("login")) {
-                        result = client.login(input);
-                    } else if (command.equals("quit")) {
-                        return;
-                    } else {
-                        System.out.println("Invalid command.");
-                    }
-                }
-                case AUTHENTICATED -> {
-                    System.out.println("You're logged in. Enter commands to play. Enter 'help' to see available commands.");
-                    String input = stdin.nextLine();
-                    System.out.println(ERASE_SCREEN);
-                    String command = new Scanner(input).next();
-                    if (command == null) {
-                        System.out.println("Invalid command, try again\n");
-                    } else if (command.equals("logout")) {
-                        result = client.logout();
-                    } else if (command.equals("help")) {
-                        printAuthHelp();
-                    } else if (command.equals("quit")) {
-                        client.logout();
-                        System.out.println("Goodbye. Play again soon!");
-                        return;
-                    } else if (command.equals("create")) {
-                        result = client.createGame(input);
-                    } else if (command.equals("join")) {
-                        result = client.joinGame(input);
-                        if (result.gamesToPrint() != null) {
-                            if (input.toUpperCase().contains("WHITE")) {
-                                playAndPrintAs = WHITE;
-                            } else {
-                                playAndPrintAs = BLACK;
-                            }
-                            result = liveLoop(result, true);
-                        }
-                    } else if (command.equals("list")) {
-                        result = client.listGames();
-                    } else if (command.equals("observe")) {
-                        state = ClientUI.UserState.OBSERVING;
-                        playAndPrintAs = WHITE;
-                        result = client.observeGame(input);
-                        if (result.gamesToPrint() == null) {
-                            result = new ClientMessage(true, "No game has that number", null);
-                        } else {
-                            result = liveLoop(result, false);
-                        }
-                    };
-                }
+            System.out.println("Welcome to the chess app. Enter commands to play. Enter 'help' to get help");
+            String input = stdin.nextLine();
+            //System.out.println(ERASE_SCREEN);
+            String command = null;
+            try {
+                command = new Scanner(input).next();
+            } catch (NoSuchElementException e) {
+                command = null;
             }
-            if (result.authd()) {
-                state = UserState.AUTHENTICATED;
+            if (command == null) {
+                System.out.println("Invalid command. Try again\n");
+            } else if (command.equals("help")) {
+                printHelp();
+            } else if (command.equals("register")) {
+                result = client.register(input);
+            } else if (command.equals("login")) {
+                result = client.login(input);
+            } else if (command.equals("quit")) {
+                return;
             } else {
-                state = UserState.UNAUTHENTICATED;
+                System.out.println("Invalid command.");
+            }
+            boolean stop = false;
+            if (result.authd()) {
+                stop = authenticatedLoop();
+            }
+            if (stop) {
+                return;
+            }
+            System.out.println(result.toPrint());
+        }
+    }
+
+    public boolean authenticatedLoop() {
+        Scanner stdin = new Scanner(System.in);
+        while (true) {
+            ClientMessage result = new ClientMessage(false, "", null);
+            System.out.println("You're logged in as " + client.getUsername() +
+                    ". Enter commands to play. Enter 'help' to see available commands.");
+            String input = stdin.nextLine();
+            System.out.println(ERASE_SCREEN);
+            String command = new Scanner(input).next();
+            if (command == null) {
+                System.out.println("Invalid command, try again\n");
+            } else if (command.equals("logout")) {
+                result = client.logout();
+                return false;
+            } else if (command.equals("help")) {
+                printAuthHelp();
+            } else if (command.equals("quit")) {
+                client.logout();
+                System.out.println("Goodbye. Play again soon!");
+                return true;
+            } else if (command.equals("create")) {
+                result = client.createGame(input);
+            } else if (command.equals("join")) {
+                result = client.joinGame(input);
+                if (result.gamesToPrint() != null && input.toUpperCase().contains("WHITE")) {
+                    playAndPrintAs = WHITE;
+                    result = liveLoop(result, true);
+                } else if (result.gamesToPrint() != null && input.toUpperCase().contains("BLACK")) {
+                    playAndPrintAs = BLACK;
+                    result = liveLoop(result, true);
+                }
+            } else if (command.equals("list")) {
+                result = client.listGames();
+            } else if (command.equals("observe")) {
+                state = ClientUI.UserState.OBSERVING;
+                playAndPrintAs = WHITE;
+                result = client.observeGame(input);
+                if (result.gamesToPrint() == null) {
+                    result = new ClientMessage(true, "No game has that number", null);
+                } else {
+                    result = liveLoop(result, false);
+                }
             }
             System.out.println(printResult(result, playAndPrintAs));
         }
     }
-
     public ClientMessage liveLoop(ClientMessage print, boolean playing) {
         liveGame = print.gamesToPrint()[0];
         System.out.println(printResult(print, WHITE));
@@ -155,7 +159,8 @@ public class ClientUI {
                     System.out.println("No piece is located on that square.");
                     continue;
                 }
-                if ((end.getRank() == 1 || end.getRank() == 8) && liveGame.game().getBoard().getPiece(start).getPieceType() == ChessPiece.PieceType.PAWN) {
+                if ((end.getRank() == 1 || end.getRank() == 8) &&
+                        liveGame.game().getBoard().getPiece(start).getPieceType() == ChessPiece.PieceType.PAWN) {
                     promotion = promotionPrompt();
                 }
                 ChessMove moveToPlay = new ChessMove(start, end, promotion);
@@ -265,7 +270,7 @@ public class ClientUI {
             }
         }
         if (playAndPrintAs == null || playAndPrintAs == WHITE) {
-            str.append("  \u2009A \u3000B \u3000C \u3000D \u3000E \u3000F \u3000G \u3000H  \n");
+            str.append("\u3000  \u2009A \u3000B \u3000C \u3000D \u3000E \u3000F \u3000G \u3000H  \n");
             for (int rank = 8; rank >= 1; rank -= 1) {
                 str.append(" ").append(rank).append(" ");
                 for (int file = 1; file <= 8; file += 1) {
@@ -274,18 +279,18 @@ public class ClientUI {
                 }
                 str.append(SET_BG_COLOR_BLACK + " ").append(rank).append('\n');
             }
-            str.append("  \u2009A \u3000B \u3000C \u3000D \u3000E \u3000F \u3000G \u3000H  \n");
+            str.append("\u3000  \u2009A \u3000B \u3000C \u3000D \u3000E \u3000F \u3000G \u3000H  \n");
         } else {
-            str.append("   H\u3000 G\u3000 F\u3000 E\u3000 D\u3000 C\u3000 B\u3000 A  \n");
+            str.append("\u3000  H\u3000 G\u3000 F\u3000 E\u3000 D\u3000 C\u3000 B\u3000 A  \n");
             for (int rank = 1; rank <= 8; rank += 1) {
-                str.append(rank).append(" ");
+                str.append(" ").append(rank).append(" ");
                 for (int file = 8; file >= 1; file -= 1) {
                     colorSpace(str, rank, file, squares, highlight);
                     str.append(printSpace(game, rank, file));
                 }
                 str.append(SET_BG_COLOR_BLACK + " ").append(rank).append('\n');
             }
-            str.append("   H\u3000 G\u3000 F\u3000 E\u3000 D\u3000 C\u3000 B\u3000 A  \n");
+            str.append("\u3000  H\u3000 G\u3000 F\u3000 E\u3000 D\u3000 C\u3000 B\u3000 A  \n");
         }
         if (game.game().getResigned() != null && game.game().getResigned() == WHITE) {
             str.append("White has resigned. Black wins the game!\n");

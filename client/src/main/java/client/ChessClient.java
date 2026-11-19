@@ -201,8 +201,8 @@ public class ChessClient {
     public void notify(String message) {
         ui.notify(message);
     }
-    public GameDAO getLiveGame() {
-        return liveGame;
+    public String getUsername() {
+        return username;
     }
     public void setLiveGame(GameDAO game) {
         liveGame = game;

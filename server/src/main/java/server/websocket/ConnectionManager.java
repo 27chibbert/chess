@@ -15,8 +15,8 @@ import java.util.logging.SimpleFormatter;
 
 
 public class ConnectionManager {
-    private record connectionType(Integer gameID, Boolean playing, String authToken){};
-    private ConcurrentHashMap<Session, connectionType> connections = new ConcurrentHashMap<>();
+    private record ConnectionType(Integer gameID, Boolean playing, String authToken){};
+    private ConcurrentHashMap<Session, ConnectionType> connections = new ConcurrentHashMap<>();
     private static Gson serializer = new Gson();
     private static final Logger LOGGER = Logger.getLogger("Server Log");
 
@@ -32,7 +32,7 @@ public class ConnectionManager {
     }
 
     public void add(Session session, Integer gameID, Boolean playing, String authToken) {
-        connections.put(session, new connectionType(gameID, playing, authToken));
+        connections.put(session, new ConnectionType(gameID, playing, authToken));
     }
 
     public void remove(Session session) {
@@ -40,10 +40,11 @@ public class ConnectionManager {
     }
 
     public void notify(String notification, int gameID, String authToken) {
-        for (Map.Entry<Session, connectionType> entry : connections.entrySet()) {
+        for (Map.Entry<Session, ConnectionType> entry : connections.entrySet()) {
             if (entry.getValue().gameID() == gameID && !authToken.equals(entry.getValue().authToken())) {
                 try {
-                    entry.getKey().getRemote().sendString(serializer.toJson(new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, notification)));
+                    entry.getKey().getRemote().sendString(serializer.toJson(
+                            new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, notification)));
                 } catch (IOException e) {
                     LOGGER.warning(String.format("Failed to send notification of game %d", gameID));
                 }
@@ -52,7 +53,7 @@ public class ConnectionManager {
     }
 
     public void publishGameChange(GameDAO game) {
-        for (Map.Entry<Session, connectionType> entry : connections.entrySet()) {
+        for (Map.Entry<Session, ConnectionType> entry : connections.entrySet()) {
             if (entry.getValue().gameID() == game.gameID()) {
                 try {
                     entry.getKey().getRemote().sendString(serializer.toJson(new LoadGameMessage(game)));
@@ -61,10 +62,5 @@ public class ConnectionManager {
                 }
             }
         }
-    }
-
-    public boolean isObserver(Session session) {
-        connectionType conn = connections.get(session);
-        return conn.playing();
     }
 }

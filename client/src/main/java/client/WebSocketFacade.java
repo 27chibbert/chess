@@ -89,6 +89,7 @@ public class WebSocketFacade extends Endpoint {
             ResignOrLeaveGameCommand command = new ResignOrLeaveGameCommand(UserGameCommand.CommandType.LEAVE, authToken, gameID, color);
             String message = serializer.toJson(command);
             this.session.getBasicRemote().sendText(message);
+            this.session.close();
         } catch (IOException e) {
             LOGGER.warning("Failed with IOException when attempting to make leaveGame command");
             throw new RuntimeException("Failed with IOException when attempting to make leaveGame command");

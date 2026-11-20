@@ -194,7 +194,7 @@ public class ChessClient {
         webSocketFacade.resign(authToken, liveGame.gameID(), color);
         return new ClientMessage(true, "You resigned from the game.", null);
     }
-    public void leaveGame(int gameID) {
+    public void leaveGame(int gameID, boolean playing) {
         try {
             webSocketFacade.leaveGame(authToken, liveGame.gameID(), color);
             webSocketFacade.session.close();
@@ -223,7 +223,7 @@ public class ChessClient {
             AuthDAO auth = (AuthDAO) msg.data();
             username = auth.username();
             authToken = auth.authToken();
-            String out = String.format("You logged in as user %s!\n", username);
+            String out = "You have logged out.\n";
             state = UserState.AUTHENTICATED;
             ServerMessage result = webClient.listGames(authToken);
             mapGames((GameDAO[]) result.data());

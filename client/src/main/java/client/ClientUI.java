@@ -12,7 +12,7 @@ import static ui.EscapeSequences.*;
 
 public class ClientUI {
 
-    private ChessClient client;
+    private final ChessClient client;
     private ChessGame.TeamColor playAndPrintAs;
     private GameDAO liveGame;
 
@@ -34,9 +34,7 @@ public class ClientUI {
             String command = null;
             try {
                 command = new Scanner(input).next();
-            } catch (NoSuchElementException e) {
-                command = null;
-            }
+            } catch (NoSuchElementException _) {}
             if (command == null) {
                 System.out.println("Invalid command. Try again\n");
             } else if (command.equals("help")) {
@@ -60,7 +58,6 @@ public class ClientUI {
             System.out.println(result.toPrint());
         }
     }
-
     public boolean authenticatedLoop() {
         Scanner stdin = new Scanner(System.in);
         while (true) {
@@ -112,28 +109,27 @@ public class ClientUI {
     }
     public ClientMessage liveLoop(ClientMessage print, boolean playing) {
         liveGame = print.gamesToPrint()[0];
-        //System.out.println(printResult(print, WHITE));
         String command = "";
         Scanner stdin = new Scanner(System.in);
         while (!command.equals("leave")) {
             System.out.println(EMPTY + "Now seeing a live game. Type \"help\" for options");
             command = stdin.nextLine();
-            if (command.length() >= 4 && command.substring(0, 4).equals("help")) {
+            if (command.startsWith("help")) {
                 if (playing) {
                     printGameHelp();
                 } else {
                     printObserveHelp();
                 }
-            } else if (command.length() >= 6 && command.substring(0, 6).equals("redraw")) {
+            } else if (command.startsWith("redraw")) {
                 System.out.println(printGame(liveGame, null));
-            } else if (command.length() >= 12 && command.substring(0, 9).equals("highlight")) {
+            } else if (command.length() >= 12 && command.startsWith("highlight")) {
                 ChessPosition highlight = getPositionFromCommand(command.substring(10,12));
                 if (highlight == null) {
                     System.out.println("Bad command format. Write the square in this form 'a1'");
                 } else {
                     System.out.println(printGame(liveGame, highlight));
                 }
-            } else if (playing && command.length() >= 10 && command.substring(0,4).equals("move")) {
+            } else if (playing && command.length() >= 10 && command.startsWith("move")) {
                 ChessPosition start = getPositionFromCommand(command.substring(5,7));
                 ChessPosition end = getPositionFromCommand(command.substring(8,10));
                 ChessPiece.PieceType promotion = null;
@@ -164,8 +160,14 @@ public class ClientUI {
                 } else {
                     System.out.println("Invalid move");
                 }
-            } else if (playing && command.length() >= 6 && command.substring(0,6).equals("resign")) {
-                client.resign();
+            } else if (playing && command.startsWith("resign")) {
+                System.out.println("Are you sure you want to resign, flip the board, and lose?\nType 'yes' to confirm");
+                command = stdin.nextLine();
+                if (command.startsWith("yes")) {
+                    client.resign();
+                } else {
+                    System.out.println("Continuing game.");
+                }
             }
         }
         client.leaveGame(liveGame.gameID(), playing);
@@ -212,16 +214,20 @@ public class ClientUI {
         System.out.println("Your pawn is going to promote! Type either 'queen', 'rook', 'knight', or 'bishop' for the piece you want to promote to.");
         while (true) {
             String input = stdin.next().toLowerCase();
-            if (input.equals("queen")) {
-                return ChessPiece.PieceType.QUEEN;
-            } else if (input.equals("rook")) {
-                return ChessPiece.PieceType.ROOK;
-            } else if (input.equals("knight")) {
-                return ChessPiece.PieceType.KNIGHT;
-            } else if (input.equals("bishop")) {
-                return ChessPiece.PieceType.BISHOP;
-            } else {
-                System.out.println("Invalid input. Type either 'queen', 'rook', 'knight', or 'bishop'.");
+            switch (input) {
+                case "queen" -> {
+                    return ChessPiece.PieceType.QUEEN;
+                }
+                case "rook" -> {
+                    return ChessPiece.PieceType.ROOK;
+                }
+                case "knight" -> {
+                    return ChessPiece.PieceType.KNIGHT;
+                }
+                case "bishop" -> {
+                    return ChessPiece.PieceType.BISHOP;
+                }
+                default -> System.out.println("Invalid input. Type either 'queen', 'rook', 'knight', or 'bishop'.");
             }
         }
     }
@@ -284,6 +290,12 @@ public class ClientUI {
             }
             str.append("\u3000  H\u3000 G\u3000 F\u3000 E\u3000 D\u3000 C\u3000 B\u3000 A  \n");
         }
+        if (game.game().isInCheck(WHITE)) {
+            str.append(String.format("White player %s is in check!\n", game.whiteUsername()));
+        }
+        if (game.game().isInCheckmate(BLACK)) {
+            str.append(String.format("Black player %s is in check!\n", game.blackUsername()));
+        }
         if (game.game().getResigned() != null && game.game().getResigned() == WHITE) {
             str.append("White has resigned. Black wins the game!\n");
             return str.toString();
@@ -292,10 +304,10 @@ public class ClientUI {
             return str.toString();
         }
         if (game.game().isInCheckmate(WHITE)) {
-            str.append("White is in Checkmate! Black has won!");
+            str.append("White is in Checkmate! Black has won!\n");
             return str.toString();
         } else if (game.game().isInCheckmate(BLACK)) {
-            str.append("Black is in Checkmate! White has won!");
+            str.append("Black is in Checkmate! White has won!\n");
             return str.toString();
         } else {
             if (game.game().getTeamTurn() == WHITE && game.whiteUsername() != null) {
@@ -365,13 +377,9 @@ public class ClientUI {
             str.append(SET_BG_COLOR_BLACK);
             return;
         }
-        int offset = 0;
-        if (playAndPrintAs == BLACK) {
-            offset = 1;
-        }
-        if ((file + rank - offset) % 2 == 0 && squares.contains(new ChessPosition(rank, file))) {
+        if ((file + rank) % 2 == 0 && squares.contains(new ChessPosition(rank, file))) {
             str.append(SET_BG_COLOR_DARK_GREEN);
-        } else if ((file + rank - offset) % 2 == 0 && !squares.contains(new ChessPosition(rank, file))) {
+        } else if ((file + rank) % 2 == 0 && !squares.contains(new ChessPosition(rank, file))) {
             str.append(SET_BG_COLOR_DARK_GREY);
         } else if (squares.contains(new ChessPosition(rank, file))) {
             str.append(SET_BG_COLOR_GREEN);
@@ -381,39 +389,46 @@ public class ClientUI {
     }
     private void printHelp() {
         System.out.println(
-                "Commands available:\n" +
-                        "'help' - Display available commands\n" +
-                        "'quit' - Exit the program\n" +
-                        "'login <USERNAME> <PASSWORD>' - Login to your account\n" +
-                        "'register <USERNAME> <PASSWORD> <EMAIL>' - Create a new account\n"
+                """
+                        Commands available:
+                        'help' - Display available commands
+                        'quit' - Exit the program
+                        'login <USERNAME> <PASSWORD>' - Login to your account
+                        'register <USERNAME> <PASSWORD> <EMAIL>' - Create a new account
+                        """
         );
     }
     private void printAuthHelp() {
         System.out.println(
-                "Commands available:\n" +
-                        "'help' - Display available commands\n" +
-                        "'logout' - Log out of your account\n" +
-                        "'quit' - Quit the chess app\n" +
-                        "'create <NAME>' - Start a new game" +
-                        "'list' - See all existing games on the server\n" +
-                        "'join <ID> [WHITE|BLACK]' - Join a game and play\n" +
-                        "'observe <ID>' - Observe an active game\n"
+                """
+                        Commands available:
+                        'help' - Display available commands
+                        'logout' - Log out of your account
+                        'quit' - Quit the chess app
+                        'create <NAME>' - Start a new game\
+                        'list' - See all existing games on the server
+                        'join <ID> [WHITE|BLACK]' - Join a game and play
+                        'observe <ID>' - Observe an active game
+                        """
         );
     }
     private void printObserveHelp() {
-        System.out.println("'leave' - Stop observing\n" +
-                "'redraw' - Redraw the current chess board\n" +
-                "'highlight <square>' - Show the moves the piece on the given square can do. Example: highlight e2\n");
+        System.out.println("""
+                'leave' - Stop observing
+                'redraw' - Redraw the current chess board
+                'highlight <square>' - Show the moves the piece on the given square can do. Example: highlight e2
+                """);
     }
     private void printGameHelp() {
         System.out.println(
-                "Commands available\n" +
-                        "'help' - see this menu\n" +
-                        "'redraw' - redraw the chess board\n" +
-                        "'leave' - leave the game (does not resign)\n" +
-                        "'resign' - resign the game (does not leave)\n" +
-                        "'move' <start square> <end square> - do a move, example: 'move e2 e4'\n" +
-                        "'highlight <square> - shows all possible moves of the piece on that square"
+                """
+                        Commands available
+                        'help' - see this menu
+                        'redraw' - redraw the chess board
+                        'leave' - leave the game (does not resign)
+                        'resign' - resign the game (does not leave)
+                        'move' <start square> <end square> - do a move, example: 'move e2 e4'
+                        'highlight <square> - shows all possible moves of the piece on that square"""
         );
     }
 }

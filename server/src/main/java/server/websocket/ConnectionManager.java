@@ -37,7 +37,6 @@ public class ConnectionManager {
 
     public void remove(Session session) {
         connections.remove(session);
-        session.close();
     }
 
     public void notify(String notification, int gameID, String authToken) {

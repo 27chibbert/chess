@@ -79,7 +79,19 @@ public class WebSocketHandler implements WsConnectHandler, WsCloseHandler, WsMes
             LoadGameMessage message = new LoadGameMessage(server.getGame(command.getAuthToken(), command.getGameID()));
             ctx.session.getRemote().sendString(serializer.toJson(message));
             String username = server.authSession(command.getAuthToken()).username();
-            connectionManager.notify(String.format("%s joined the game!", username), command.getGameID(), command.getAuthToken());
+            GameDAO game;
+            if (command.isPlaying() == true) {
+                game = server.getGame(command.getAuthToken(), command.getGameID());
+                if (game.whiteUsername().equals(game.blackUsername())) {
+                    connectionManager.notify(String.format("%s joined the game. They are both players."), command.getGameID(), command.getAuthToken());
+                } else if (game.whiteUsername().equals(username)) {
+                    connectionManager.notify(String.format("%s joined the game as White.", username), command.getGameID(), command.getAuthToken());
+                } else {
+                    connectionManager.notify(String.format("%s joined the game as Black.", username), command.getGameID(), command.getAuthToken());
+                }
+            } else {
+                connectionManager.notify(String.format("%s is now observing the game.", username), command.getGameID(), command.getAuthToken());
+            }
             connectionManager.add(ctx.session, command.getGameID(), command.isPlaying(), command.getAuthToken());
         } catch (InvalidLoginException e) {
             ErrorMessage message = new ErrorMessage("Invalid Credentials");
@@ -99,9 +111,9 @@ public class WebSocketHandler implements WsConnectHandler, WsCloseHandler, WsMes
             String message = "";
             if (game.game().isInCheckmate(game.game().getTeamTurn())) {
                 if (game.game().getTeamTurn() == ChessGame.TeamColor.WHITE) {
-                    message = "Black is in checkmate. White wins!";
+                    message = String.format("White player %s is in checkmate. Black player %s wins!", game.whiteUsername(), game.blackUsername());
                 } else {
-                    message = "White is in checkmate. Black wins!";
+                    message = String.format("Black player %s is in checkmate. White player %s wins!", game.blackUsername(), game.whiteUsername());
                 }
                 connectionManager.notify(message, command.getGameID(), "null");
             }
@@ -125,9 +137,9 @@ public class WebSocketHandler implements WsConnectHandler, WsCloseHandler, WsMes
                     (game.blackUsername() != null && game.blackUsername().equals(username))) {
                 ChessGame.TeamColor color = server.leaveGame(command.getAuthToken(), command.getColor(), command.getGameID());
                 if (color == ChessGame.TeamColor.WHITE) {
-                    connectionManager.notify("White has left the game", command.getGameID(), command.getAuthToken());
+                    connectionManager.notify(username + ", playing as White, has left the game", command.getGameID(), command.getAuthToken());
                 } else {
-                    connectionManager.notify("Black has left the game", command.getGameID(), command.getAuthToken());
+                    connectionManager.notify(username + ", playing as Black, has left the game", command.getGameID(), command.getAuthToken());
                 }
             } else {
                 connectionManager.notify("An observer has left the game", command.getGameID(), command.getAuthToken());
@@ -146,10 +158,11 @@ public class WebSocketHandler implements WsConnectHandler, WsCloseHandler, WsMes
         try {
             ResignOrLeaveGameCommand command = serializer.fromJson(ctx.message(), ResignOrLeaveGameCommand.class);
             server.resign(command.getAuthToken(), command.getGameID(), command.getColor());
+            String username = server.authSession(command.getAuthToken()).username();
             if (command.getColor() == ChessGame.TeamColor.WHITE) {
-                connectionManager.notify("White has resigned. Black has won!", command.getGameID(), "null");
+                connectionManager.notify(String.format("White player %s has resigned. Black has won!", username), command.getGameID(), "null");
             } else {
-                connectionManager.notify("Black has resigned. White has won!", command.getGameID(), "null");
+                connectionManager.notify(String.format("Black player %s has resigned. White has won!", username), command.getGameID(), "null");
             }
         } catch (InvalidLoginException e) {
             ErrorMessage msg = new ErrorMessage("Invalid credentials");

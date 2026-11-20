@@ -35,9 +35,9 @@ public class ConnectionManager {
         connections.put(session, new ConnectionType(gameID, playing, authToken));
     }
 
-    public String remove(Session session) {
-        ConnectionType conn = connections.remove(session);
-        return conn.authToken();
+    public void remove(Session session) {
+        connections.remove(session);
+        session.close();
     }
 
     public void notify(String notification, int gameID, String authToken) {

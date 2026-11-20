@@ -241,7 +241,7 @@ public class ClientUI {
     }
     private String printGame(GameDAO game, ChessPosition highlight) {
         StringBuilder str = new StringBuilder();
-        ChessGame.TeamColor color = game.game().getTeamTurn();
+        //ChessGame.TeamColor color = game.game().getTeamTurn();
         Collection<ChessPosition> squares = new ArrayList<>();
         str.append(SET_TEXT_COLOR_BLUE).append(SET_TEXT_BLINKING).append(SET_TEXT_BOLD).append("------ Game # ").append(game.gameID()).append(" - ")
                 .append(game.gameName()).append(" ------\n").append(RESET_TEXT_BOLD_FAINT).append(RESET_TEXT_BLINKING).append(RESET_TEXT_COLOR);
@@ -298,10 +298,14 @@ public class ClientUI {
             str.append("Black is in Checkmate! White has won!");
             return str.toString();
         } else {
-            if (game.game().getTeamTurn() == WHITE) {
-                str.append("White's turn\n");
-            } else {
-                str.append("Black's turn\n");
+            if (game.game().getTeamTurn() == WHITE && game.whiteUsername() != null) {
+                str.append(String.format("%s's turn for White\n", game.whiteUsername()));
+            } else if (game.game().getTeamTurn() == WHITE && game.whiteUsername() == null) {
+                str.append("White's turn. Waiting for player to join as White\n");
+            } else if (game.game().getTeamTurn() == BLACK && game.blackUsername() != null) {
+                str.append(String.format("%s's turn for Black\n", game.blackUsername()));
+            } else if (game.game().getTeamTurn() == BLACK && game.blackUsername() == null) {
+                str.append("Black's turn. Waiting for player to join as Black\n");
             }
         }
         return str.toString();

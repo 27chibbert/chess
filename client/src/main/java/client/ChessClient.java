@@ -223,7 +223,7 @@ public class ChessClient {
             AuthDAO auth = (AuthDAO) msg.data();
             username = auth.username();
             authToken = auth.authToken();
-            String out = String.format("You logged in as user %s!\n", username);
+            String out = "You have logged out.\n";
             state = UserState.AUTHENTICATED;
             ServerMessage result = webClient.listGames(authToken);
             mapGames((GameDAO[]) result.data());

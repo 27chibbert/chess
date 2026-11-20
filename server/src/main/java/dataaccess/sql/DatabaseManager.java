@@ -7,7 +7,7 @@ import dataaccess.DataAccessException;
 import dataaccess.DatabaseException;
 import records.AuthDAO;
 import records.GameDAO;
-import org.mindrot.jbcryptgit.BCrypt;
+import org.mindrot.jbcrypt.BCrypt;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;

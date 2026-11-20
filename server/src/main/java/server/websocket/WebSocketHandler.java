@@ -83,7 +83,8 @@ public class WebSocketHandler implements WsConnectHandler, WsCloseHandler, WsMes
             if (command.isPlaying() == true) {
                 game = server.getGame(command.getAuthToken(), command.getGameID());
                 if (game.whiteUsername().equals(game.blackUsername())) {
-                    connectionManager.notify(String.format("%s joined the game. They are both players."), command.getGameID(), command.getAuthToken());
+                    connectionManager.notify(String.format("%s joined the game. They are both players."),
+                            command.getGameID(), command.getAuthToken());
                 } else if (game.whiteUsername().equals(username)) {
                     connectionManager.notify(String.format("%s joined the game as White.", username), command.getGameID(), command.getAuthToken());
                 } else {
